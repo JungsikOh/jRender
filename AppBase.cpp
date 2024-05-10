@@ -397,7 +397,7 @@ void AppBase::CreateBuffers() {
     //    m_device->CreateTexture2D(&desc, NULL, m_floatBuffer.GetAddressOf()));
 
     //ThrowIfFailed(m_device->CreateRenderTargetView(m_floatBuffer.Get(), NULL,
-    //                                               m_floatRTV.GetAddressOf()));
+    //                                               m_floatRTV.GetAddressOf()));       
 
     CreateDepthBuffers();
 }
@@ -428,7 +428,7 @@ void AppBase::UpdateGlobalConstants(const Vector3 &eyeWorld,
     D3D11Utils::UpdateBuffer(m_device, m_context, m_globalConstsCPU,
                              m_globalConstsGPU);
     // D3D11Utils::UpdateBuffer(m_device, m_context, m_reflectGlobalConstsCPU,
-    //                          m_reflectGlobalConstsGPU);
+    //                          m_reflectGlobalConstsGPU); 
 }
 
 void AppBase::CreateDepthBuffers() {

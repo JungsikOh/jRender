@@ -19,6 +19,8 @@ struct Light
     float fallOffEnd;
     float3 position;
     float spotPower;
+    float3 lightColor;
+    float dummy1;
     
     uint type;
     float radius;

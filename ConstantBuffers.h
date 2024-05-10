@@ -6,7 +6,7 @@
 #define MAX_LIGHTS 3
 #define LIGHT_OFF 0x00
 #define LIGHT_DIRECTIONAL 0x01
-#define LIGHT_POINT 0x02
+#define LIGHT_POINT 0x02 
 #define LIGHT_SPOT 0x04
 #define LIGHT_SHADOW 0x10
 
@@ -71,7 +71,9 @@ struct Light {
     Vector3 direction = Vector3(0.0f, 0.0f, 1.0f);
     float fallOffEnd = 20.0f;
     Vector3 position = Vector3(0.0f, 0.0f, -2.0f);
-    float spotPower = 6.0f;
+    float spotPower = 3.0f;
+    Vector3 lightColor = Vector3(0.3f);
+    float dummy1;
 
     // Light type bitmasking
     // ex) LIGHT SPOT | LIGHT_SHADOW

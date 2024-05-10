@@ -7,10 +7,10 @@ struct PixelShaderOutput
 
 cbuffer MaterialConstants : register(b0)
 {
-    float3 albedoFactor = float3(1.0, 0, 0);
-    float roughnessFactor = 1.0;
-    float metallicFactor = 1.0;
-    float3 emissionFactor = float3(0.0, 0, 0);
+    float3 albedoFactor;
+    float roughnessFactor;
+    float metallicFactor;
+    float3 emissionFactor;
 
     // you can use "uint flag" about complex options.
     int useAlbedoMap = 0;
@@ -27,37 +27,37 @@ cbuffer MaterialConstants : register(b0)
 float3 blinnPhong(float NdotL, float NdotH, float3 diffuseColor, float3 specColor)
 {
     
-    float diffuse = NdotL * diffuseColor * 0.5; // Light Intensity.
-    float specular = pow(NdotH, 2) * specColor * 0.5;
+    float3 diffuse = max(NdotL, 0.0) * diffuseColor; // Light Intensity.
+    float3 specular = pow(max(NdotH, 0.0), 16.0) * specColor;
     
-    return diffuse * specular;
+    return diffuse + specular;
 }
 
 PixelShaderOutput main(PixelShaderInput input)
 {
     PixelShaderOutput output;
-    float3 directLighting = float3(1, 0, 0);
+    float3 directLighting = float3(0, 0, 0);
     float3 pixelToEye = normalize(eyeWorld - input.posWorld);
     
+    float3 ambient = 0.05 * albedoFactor;
     
     [unroll]
     for (int i = 0; i < MAX_LIGHTS; i++)
     {
         if (lights[i].type)
         {
-            float3 radiance = float3(0, 0, 0);
-            float3 lightVec = lights[i].position - input.posWorld;
-            lightVec = normalize(lightVec);
+            float3 lightVec = normalize(lights[i].position - input.posWorld);
             float3 normalVec = input.normalWorld;
             
             float3 halfWay = normalize(lightVec + pixelToEye);
-            float NdotL = max(1e-5, dot(normalVec, lightVec));
-            float NdotH = max(1e-5, dot(normalVec, halfWay));
+            float NdotL = max(0.0, dot(normalVec, lightVec));
+            float NdotH = max(0.0, dot(normalVec, halfWay));
             
-            directLighting += blinnPhong(NdotL, NdotH, float3(1, 1, 1), float3(0, 0, 0));
+            directLighting += blinnPhong(NdotL, NdotH, albedoFactor, float3(0.3, 0.3, 0.3));
+            directLighting *= (lights[i].spotPower / length(lightVec)) * (lights[i].lightColor / length(lightVec));
+
         }
     }
-    
-    output.pixelColor = float4(directLighting, 0.0);
+    output.pixelColor = float4(ambient + directLighting, 1.0);
     return output;
 }

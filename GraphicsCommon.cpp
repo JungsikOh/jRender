@@ -69,7 +69,7 @@ GraphicsPSO postProcessingPSO;
 
 }
 
-void Graphics::InitCommonStates(ComPtr<ID3D11Device> &device) {
+void Graphics::InitCommonStates(ComPtr<ID3D11Device> &device) {   
 
     InitShaders(device);
     //InitSamplers(device);

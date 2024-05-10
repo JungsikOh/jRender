@@ -41,6 +41,9 @@ class Engine : public AppBase {
     DirectX::SimpleMath::Plane m_mirrorPlane;
     float m_mirrorAlpha = 1.0f; // Opacity
 
+    // For GUI
+    Vector3 translationGUI{0.0f, 1.0f, 0.0f};
+
     // 거울이 아닌 물체들의 리스트 (for문으로 그리기 위함)
     vector<shared_ptr<Model>> m_basicList;
 };
