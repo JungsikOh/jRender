@@ -11,5 +11,42 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AppBase.cpp" />
+    <ClCompile Include="D3D11Utils.cpp" />
+    <ClCompile Include="Model.cpp" />
+    <ClCompile Include="ModelLoader.cpp" />
+    <ClCompile Include="GraphicsPSO.cpp" />
+    <ClCompile Include="GraphicsCommon.cpp" />
+    <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="Engine.cpp" />
+    <ClCompile Include="main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="D3D11Utils.h" />
+    <ClInclude Include="Vertex.h" />
+    <ClInclude Include="Mesh.h" />
+    <ClInclude Include="MeshData.h" />
+    <ClInclude Include="ModelInstance.h" />
+    <ClInclude Include="Model.h" />
+    <ClInclude Include="ConstantBuffers.h" />
+    <ClInclude Include="ModelLoader.h" />
+    <ClInclude Include="GraphicsPSO.h" />
+    <ClInclude Include="GraphicsCommon.h" />
+    <ClInclude Include="AppBase.h" />
+    <ClInclude Include="Camera.h" />
+    <ClInclude Include="Engine.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include=".clang-format" />
+    <None Include="Common.hlsli">
+      <Filter>Shaders</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="BasicVS.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="BasicPS.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>
