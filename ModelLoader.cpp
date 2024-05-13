@@ -245,10 +245,10 @@ MeshData ModelLoader::ProcessMesh(aiMesh *mesh, const aiScene *scene) {
         }
 
         // µð¹ö±ë¿ë
-        // for (size_t i = 0; i < 22; i++) {
-        //    cout << i << " " << ReadFilename(material, aiTextureType(i))
-        //         << endl;
-        //}
+         for (size_t i = 0; i < 22; i++) {
+            cout << i << " " << ReadFilename(material, aiTextureType(i))
+                 << endl;
+        }
     }
 
     return newMesh;

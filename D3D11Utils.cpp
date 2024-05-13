@@ -397,4 +397,22 @@ void D3D11Utils::CreateTexture(ComPtr<ID3D11Device> &device,
                         srv);
 }
 
+void D3D11Utils::CreateDDSTexture(
+    ComPtr<ID3D11Device>& device, const wchar_t* filename, bool isCubeMap,
+    ComPtr<ID3D11ShaderResourceView>& textureResourceView) {
+
+    ComPtr<ID3D11Texture2D> texture;
+
+    UINT miscFlags = 0;
+    if (isCubeMap) {
+        miscFlags |= D3D11_RESOURCE_MISC_TEXTURECUBE;
+    }
+
+    ThrowIfFailed(CreateDDSTextureFromFileEx(device.Get(), filename, 0, D3D11_USAGE_DEFAULT,
+                               D3D11_BIND_SHADER_RESOURCE, 0, miscFlags,
+                               DDS_LOADER_FLAGS(false),
+                               (ID3D11Resource **)texture.GetAddressOf(),
+                               textureResourceView.GetAddressOf(), NULL));
+}
+
 } // namespace jRenderer

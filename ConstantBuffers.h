@@ -16,7 +16,7 @@ using DirectX::SimpleMath::Matrix;
 using DirectX::SimpleMath::Vector2;
 using DirectX::SimpleMath::Vector3;
 
-// It's usually used in Vertex/Geometry Shader. 
+// It's usually used in Vertex/Geometry Shader.  
 __declspec(align(256)) struct MeshConstants {
     Matrix world;
     Matrix worldIT;
@@ -26,7 +26,7 @@ __declspec(align(256)) struct MeshConstants {
 };
 
 // It's used in Pixel Shader.
-__declspec(align(256)) struct MaterialConstants {
+__declspec(align(256)) struct MaterialConstants { 
     Vector3 albedoFactor = Vector3(1.0f);
     float roughnessFactor = 1.0f;
     float metallicFactor = 1.0f;

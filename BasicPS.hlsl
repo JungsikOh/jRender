@@ -5,6 +5,8 @@ struct PixelShaderOutput
     float4 pixelColor : SV_Target0;
 };
 
+Texture2D albedoTexture : register(t0);
+
 cbuffer MaterialConstants : register(b0)
 {
     float3 albedoFactor;
@@ -13,15 +15,15 @@ cbuffer MaterialConstants : register(b0)
     float3 emissionFactor;
 
     // you can use "uint flag" about complex options.
-    int useAlbedoMap = 0;
-    int useNormalMap = 0;
-    int useAOMap = 0;
-    int invertNormalMapY = 0;
-    int useMetallicMap = 0;
-    int useRoughnessMap = 0;
-    int useEmissiveMap = 0;
-    int useBlinnPhong = 1;
-    int useBRDF = 0;
+    int useAlbedoMap;
+    int useNormalMap;
+    int useAOMap;
+    int invertNormalMapY;
+    int useMetallicMap;
+    int useRoughnessMap;
+    int useEmissiveMap;
+    int useBlinnPhong;
+    int useBRDF;
 };
 
 float3 blinnPhong(float NdotL, float NdotH, float3 diffuseColor, float3 specColor)
@@ -39,7 +41,9 @@ PixelShaderOutput main(PixelShaderInput input)
     float3 directLighting = float3(0, 0, 0);
     float3 pixelToEye = normalize(eyeWorld - input.posWorld);
     
-    float3 ambient = 0.05 * albedoFactor;
+    float3 albedoColor = albedoTexture.SampleLevel(linearWrapSampler, input.texcoord, 1).rgb;
+    
+    float3 ambient = 0.05 * albedoColor;
     
     [unroll]
     for (int i = 0; i < MAX_LIGHTS; i++)
@@ -53,11 +57,11 @@ PixelShaderOutput main(PixelShaderInput input)
             float NdotL = max(0.0, dot(normalVec, lightVec));
             float NdotH = max(0.0, dot(normalVec, halfWay));
             
-            directLighting += blinnPhong(NdotL, NdotH, albedoFactor, float3(0.3, 0.3, 0.3));
+            directLighting += blinnPhong(NdotL, NdotH, albedoColor, float3(1.0, 1.0, 1.0));
             directLighting *= (lights[i].spotPower / length(lightVec)) * (lights[i].lightColor / length(lightVec));
-
         }
     }
+    //directLighting = clamp(directLighting, 0.0, 1.0);
     output.pixelColor = float4(ambient + directLighting, 1.0);
     return output;
 }

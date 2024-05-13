@@ -15,7 +15,7 @@ using Microsoft::WRL::ComPtr;
 struct Mesh {
 	// Mesh Constant
 	// uint16_t Material Constant (materialCBV)
-	// PSO
+	// PSO 
 
 	ComPtr<ID3D11Buffer> vertexBuffer;
     ComPtr<ID3D11Buffer> indexBuffer;
@@ -30,7 +30,7 @@ struct Mesh {
     ComPtr<ID3D11Texture2D> aoTexture;
     ComPtr<ID3D11Texture2D> metallicRoughnessTexture;
 
-    ComPtr<ID3D11ShaderResourceView> albedoSRV;
+    ComPtr<ID3D11ShaderResourceView> albedoSRV;   
     ComPtr<ID3D11ShaderResourceView> emissiveSRV;
     ComPtr<ID3D11ShaderResourceView> normalSRV;
     ComPtr<ID3D11ShaderResourceView> heightSRV;

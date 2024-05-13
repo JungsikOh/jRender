@@ -21,18 +21,170 @@ bool Engine::Initialize() {
     if (!AppBase::Initialize())
         return false;
 
+    // SkyBox texture Init
+    AppBase::InitCubemaps(L"Assets/SkyBox/", L"normalSkyEnvHDR.dds",
+                          L"normalSkySpecularHDR.dds",
+                          L"normalSkyDiffuseHDR.dds", L"normalSkyBrdf.dds");
+
+    // Skybox object
+    {
+        MeshData skyBoxMesh;
+        vector<Vector3> positions;
+        vector<Vector3> colors;
+        vector<Vector3> normals;
+        vector<Vector2> texcoords;
+        float scale = 40.0f;
+
+        // ½Ã°è ¹Ý´ë ¹æÇâ(¿Þ¼Õ ÁÂÇ¥°è)
+        // À­¸é
+        positions.push_back(Vector3(-1.0f, 1.0f, -1.0f) * scale);
+        positions.push_back(Vector3(-1.0f, 1.0f, 1.0f) * scale);
+        positions.push_back(Vector3(1.0f, 1.0f, 1.0f) * scale);
+        positions.push_back(Vector3(1.0f, 1.0f, -1.0f) * scale);
+        colors.push_back(Vector3(1.0f, 0.0f, 0.0f));
+        colors.push_back(Vector3(1.0f, 0.0f, 0.0f));
+        colors.push_back(Vector3(1.0f, 0.0f, 0.0f));
+        colors.push_back(Vector3(1.0f, 0.0f, 0.0f));
+        normals.push_back(Vector3(0.0f, 1.0f, 0.0f));
+        normals.push_back(Vector3(0.0f, 1.0f, 0.0f));
+        normals.push_back(Vector3(0.0f, 1.0f, 0.0f));
+        normals.push_back(Vector3(0.0f, 1.0f, 0.0f));
+        texcoords.push_back(Vector2(0.0f, 0.0f));
+        texcoords.push_back(Vector2(0.0f, 1.0f));
+        texcoords.push_back(Vector2(1.0f, 1.0f));
+        texcoords.push_back(Vector2(1.0f, 0.0f));
+
+        // ¾Æ·§¸é
+        positions.push_back(Vector3(-1.0f, -1.0f, -1.0f) * scale);
+        positions.push_back(Vector3(-1.0f, -1.0f, 1.0f) * scale);
+        positions.push_back(Vector3(1.0f, -1.0f, 1.0f) * scale);
+        positions.push_back(Vector3(1.0f, -1.0f, -1.0f) * scale);
+        colors.push_back(Vector3(1.0f, 0.0f, 0.0f));
+        colors.push_back(Vector3(1.0f, 0.0f, 0.0f));
+        colors.push_back(Vector3(1.0f, 0.0f, 0.0f));
+        colors.push_back(Vector3(1.0f, 0.0f, 0.0f));
+        normals.push_back(Vector3(0.0f, -1.0f, 0.0f));
+        normals.push_back(Vector3(0.0f, -1.0f, 0.0f));
+        normals.push_back(Vector3(0.0f, -1.0f, 0.0f));
+        normals.push_back(Vector3(0.0f, -1.0f, 0.0f));
+        texcoords.push_back(Vector2(0.0f, 0.0f));
+        texcoords.push_back(Vector2(0.0f, 1.0f));
+        texcoords.push_back(Vector2(1.0f, 1.0f));
+        texcoords.push_back(Vector2(1.0f, 0.0f));
+
+        // ¾Õ¸é
+        positions.push_back(Vector3(-1.0f, 1.0f, -1.0f) * scale);
+        positions.push_back(Vector3(-1.0f, -1.0f, -1.0f) * scale);
+        positions.push_back(Vector3(1.0f, -1.0f, -1.0f) * scale);
+        positions.push_back(Vector3(1.0f, 1.0f, -1.0f) * scale);
+        colors.push_back(Vector3(1.0f, 0.0f, 0.0f));
+        colors.push_back(Vector3(1.0f, 0.0f, 0.0f));
+        colors.push_back(Vector3(1.0f, 0.0f, 0.0f));
+        colors.push_back(Vector3(1.0f, 0.0f, 0.0f));
+        normals.push_back(Vector3(0.0f, 0.0f, -1.0f));
+        normals.push_back(Vector3(0.0f, 0.0f, -1.0f));
+        normals.push_back(Vector3(0.0f, 0.0f, -1.0f));
+        normals.push_back(Vector3(0.0f, 0.0f, -1.0f));
+        texcoords.push_back(Vector2(0.0f, 0.0f));
+        texcoords.push_back(Vector2(0.0f, 1.0f));
+        texcoords.push_back(Vector2(1.0f, 1.0f));
+        texcoords.push_back(Vector2(1.0f, 0.0f));
+
+        // µÞ¸é
+        positions.push_back(Vector3(-1.0f, 1.0f, 1.0f) * scale);
+        positions.push_back(Vector3(-1.0f, -1.0f, 1.0f) * scale);
+        positions.push_back(Vector3(1.0f, -1.0f, 1.0f) * scale);
+        positions.push_back(Vector3(1.0f, 1.0f, 1.0f) * scale);
+        colors.push_back(Vector3(1.0f, 0.0f, 0.0f));
+        colors.push_back(Vector3(1.0f, 0.0f, 0.0f));
+        colors.push_back(Vector3(1.0f, 0.0f, 0.0f));
+        colors.push_back(Vector3(1.0f, 0.0f, 0.0f));
+        normals.push_back(Vector3(0.0f, 0.0f, 1.0f));
+        normals.push_back(Vector3(0.0f, 0.0f, 1.0f));
+        normals.push_back(Vector3(0.0f, 0.0f, 1.0f));
+        normals.push_back(Vector3(0.0f, 0.0f, 1.0f));
+        texcoords.push_back(Vector2(0.0f, 0.0f));
+        texcoords.push_back(Vector2(0.0f, 1.0f));
+        texcoords.push_back(Vector2(1.0f, 1.0f));
+        texcoords.push_back(Vector2(1.0f, 0.0f));
+
+        // ¿Þ¸é
+        positions.push_back(Vector3(1.0f, 1.0f, 1.0f) * scale);
+        positions.push_back(Vector3(1.0f, -1.0f, 1.0f) * scale);
+        positions.push_back(Vector3(1.0f, -1.0f, -1.0f) * scale);
+        positions.push_back(Vector3(1.0f, 1.0f, -1.0f) * scale);
+        colors.push_back(Vector3(1.0f, 0.0f, 0.0f));
+        colors.push_back(Vector3(1.0f, 0.0f, 0.0f));
+        colors.push_back(Vector3(1.0f, 0.0f, 0.0f));
+        colors.push_back(Vector3(1.0f, 0.0f, 0.0f));
+        normals.push_back(Vector3(1.0f, 0.0f, 0.0f));
+        normals.push_back(Vector3(1.0f, 0.0f, 0.0f));
+        normals.push_back(Vector3(1.0f, 0.0f, 0.0f));
+        normals.push_back(Vector3(1.0f, 0.0f, 0.0f));
+        texcoords.push_back(Vector2(0.0f, 0.0f));
+        texcoords.push_back(Vector2(0.0f, 1.0f));
+        texcoords.push_back(Vector2(1.0f, 1.0f));
+        texcoords.push_back(Vector2(1.0f, 0.0f));
+
+        // ¿À¸¥¸é
+        positions.push_back(Vector3(-1.0f, 1.0f, 1.0f) * scale);
+        positions.push_back(Vector3(-1.0f, -1.0f, 1.0f) * scale);
+        positions.push_back(Vector3(-1.0f, -1.0f, -1.0f) * scale);
+        positions.push_back(Vector3(-1.0f, 1.0f, -1.0f) * scale);
+        colors.push_back(Vector3(1.0f, 0.0f, 0.0f));
+        colors.push_back(Vector3(1.0f, 0.0f, 0.0f));
+        colors.push_back(Vector3(1.0f, 0.0f, 0.0f));
+        colors.push_back(Vector3(1.0f, 0.0f, 0.0f));
+        normals.push_back(Vector3(-1.0f, 0.0f, 0.0f));
+        normals.push_back(Vector3(-1.0f, 0.0f, 0.0f));
+        normals.push_back(Vector3(-1.0f, 0.0f, 0.0f));
+        normals.push_back(Vector3(-1.0f, 0.0f, 0.0f));
+        texcoords.push_back(Vector2(0.0f, 0.0f));
+        texcoords.push_back(Vector2(0.0f, 1.0f));
+        texcoords.push_back(Vector2(1.0f, 1.0f));
+        texcoords.push_back(Vector2(1.0f, 0.0f));
+
+        for (UINT i = 0; i < positions.size(); i++) {
+            Vertex v;
+            v.position = positions[i];
+            v.normalModel = normals[i];
+            v.texcoord = texcoords[i];
+            skyBoxMesh.vertices.push_back(v);
+        }
+
+        skyBoxMesh.indices = {
+            0,  1,  2,  0,  2,
+            3, // À­¸é
+            4,  5,  6,  4,  6,
+            7, // ¾Æ·§¸é
+            8,  9,  10, 8,  10,
+            11, // ¾Õ¸é
+            12, 13, 14, 12, 14,
+            15, // µÞ¸é
+            16, 17, 18, 16, 18,
+            19, // ¿ÞÂÊ¸é
+            20, 21, 22, 20, 22,
+            23 // ¿À¸¥¸é
+        };
+
+        m_skybox = make_shared<Model>(m_device, m_context, vector{skyBoxMesh});
+    }
+
     // Main Object
     {
         auto meshes = Model::ReadFromFile("Assets/DamagedHelmet/",
-                                          "DamagedHelmet.gltf", true);
+                                          "DamagedHelmet.gltf", false);
 
-        Vector3 center(0.0f, 1.0f, 0.0f);
+        Vector3 center(0.0f, 0.5f, 0.0f);
         m_mainObj = make_shared<Model>(m_device, m_context, meshes);
         m_mainObj->m_materialConstsCPU.invertNormalMapY = true; // GLTF´Â true·Î
-        m_mainObj->m_materialConstsCPU.albedoFactor = Vector3(0.2f, 1.0f, 0.5f);
+        m_mainObj->m_materialConstsCPU.albedoFactor = Vector3(1.0f);
         m_mainObj->m_materialConstsCPU.roughnessFactor = 0.3f;
         m_mainObj->m_materialConstsCPU.metallicFactor = 0.8f;
         m_mainObj->UpdateWorldRow(Matrix::CreateTranslation(center));
+
+        // ¹°Ã¼ °¨Áö¸¦ À§ÇÑ Bounding Sphere »ý¼º
+        m_mainBoundingSphere = BoundingSphere(center, 0.5f);
 
         m_basicList.push_back(m_mainObj);
     }
@@ -54,7 +206,7 @@ bool Engine::Initialize() {
         m_globalConstsCPU.lights[1].spotPower = 3.0f;
         m_globalConstsCPU.lights[1].fallOffEnd = 20.0f;
         m_globalConstsCPU.lights[1].radius = 0.02f;
-        m_globalConstsCPU.lights[1].lightColor = Vector3(1.0f, 0.1f, 0.1f);
+        m_globalConstsCPU.lights[1].lightColor = Vector3(1.0f, 1.0f, 1.0f);
         m_globalConstsCPU.lights[1].type =
             LIGHT_SPOT | LIGHT_SHADOW; // Point with shadow
 
@@ -84,6 +236,105 @@ void Engine::Update(float dt) {
     //        Matrix::CreateTranslation(m_globalConstsCPU.lights[i].position));
     //}
 
+    static float prevRatio = 0.0f;
+    static Vector3 prevPos(0.0f);
+    static Vector3 prevVector(0.0f);
+    q = Quaternion::CreateFromAxisAngle(Vector3(1.0f, 0.0f, 0.0f), 0.0f);
+    Vector3 dragTranslation(0.0f);
+
+    // Object Moving using Mouse
+    if (m_leftButton) {
+        Vector3 cursorNdcNear = Vector3(m_cursorNdcX, m_cursorNdcY, 0.0f);
+        Vector3 cursorNdcFar = Vector3(m_cursorNdcX, m_cursorNdcY, 1.0f);
+
+        Matrix invProjToView = (viewRow * projRow).Invert();
+
+        // NDC(Proj) -> World(View)
+        Vector3 cursorWorldNear =
+            Vector3::Transform(cursorNdcNear, invProjToView);
+        Vector3 cursorWorldFar =
+            Vector3::Transform(cursorNdcFar, invProjToView);
+        // cursor direction
+        Vector3 dir = (cursorWorldFar - cursorWorldNear);
+        dir.Normalize();
+
+        // ±¤¼±À» ¸¸µé¾î¼­ ÇØ´ç ±¤¼±ÀÌ ´ê´Â´Ù¸é Ä¿¼­°¡ ¹°Ã¼¶û ´ê´Â °ÍÀ» ÀÇ¹Ì.
+        SimpleMath::Ray cursorRay = SimpleMath::Ray(cursorWorldNear, dir);
+        float dist = 0.0f;
+        m_selected = cursorRay.Intersects(m_mainBoundingSphere, dist);
+
+        if (m_selected) {
+            Vector3 pickPoint = cursorWorldNear + dist * dir;
+            if (m_dragStartFlag) {
+                m_dragStartFlag = false;
+
+                prevRatio = dist / (cursorWorldFar - cursorWorldNear).Length();
+                prevPos = pickPoint;
+            } else {
+                Vector3 newPos = cursorWorldNear +
+                                 prevRatio * (cursorWorldFar - cursorWorldNear);
+
+                if ((newPos - prevPos).Length() > 1e-3) {
+                    dragTranslation = newPos - prevPos;
+                    prevPos = newPos;
+                }
+            }
+        }
+    }
+
+    // Object Roation using Mouse
+    if (m_rightButton) {
+        Vector3 cursorNdcNear = Vector3(m_cursorNdcX, m_cursorNdcY, 0.0f);
+        Vector3 cursorNdcFar = Vector3(m_cursorNdcX, m_cursorNdcY, 1.0f);
+
+        Matrix invProjToView = (viewRow * projRow).Invert();
+
+        // NDC(Proj) -> World(View)
+        Vector3 cursorWorldNear =
+            Vector3::Transform(cursorNdcNear, invProjToView);
+        Vector3 cursorWorldFar =
+            Vector3::Transform(cursorNdcFar, invProjToView);
+        // cursor direction
+        Vector3 dir = (cursorWorldFar - cursorWorldNear);
+        dir.Normalize();
+
+        // Make Ray for checking to hand obj and mouse.
+        SimpleMath::Ray cursorRay = SimpleMath::Ray(cursorWorldNear, dir);
+        float dist = 0.0f;
+        m_selected = cursorRay.Intersects(m_mainBoundingSphere, dist);
+
+        if (m_selected) {
+            Vector3 pickPoint = cursorWorldNear + dist * dir;
+            if (m_dragStartFlag) {
+                m_dragStartFlag = false;
+
+                prevRatio = dist / (cursorWorldFar - cursorWorldNear).Length();
+                prevVector = pickPoint - m_mainBoundingSphere.Center;
+                prevVector.Normalize();
+            } else {
+                Vector3 newVector = pickPoint - m_mainBoundingSphere.Center;
+                newVector.Normalize();
+
+                float angle = std::acos(newVector.Dot(prevVector)) *
+                              (180.0 / 3.141592) * 0.1f;
+                Vector3 axis = prevVector.Cross(newVector);
+                axis.Normalize();
+                if ((newVector - prevVector).Length() > 1e-3) {
+                    q = SimpleMath::Quaternion::CreateFromAxisAngle(axis,
+                                                                    angle);
+                    prevVector = newVector;
+                }
+            }
+        }
+    }
+
+    Vector3 transition = m_mainObj->m_worldRow.Translation();
+    m_mainObj->m_worldRow.Translation(Vector3(0.0f));
+    m_mainObj->UpdateWorldRow(
+        m_mainObj->m_worldRow * Matrix::CreateFromQuaternion(q) *
+        Matrix::CreateTranslation(dragTranslation + transition));
+    m_mainBoundingSphere.Center = m_mainObj->m_worldRow.Translation();
+
     for (auto &i : m_basicList) {
         i->UpdateConstantBuffers(m_device, m_context);
     }
@@ -92,10 +343,10 @@ void Engine::Update(float dt) {
 void Engine::Render() {
     AppBase::SetMainViewport();
 
-    // m_context->VSSetSamplers(0, UINT(Graphics::sampleStates.size()),
-    //                          Graphics::sampleStates.data());
-    // m_context->PSSetSamplers(0, UINT(Graphics::sampleStates.size()),
-    //                          Graphics::sampleStates.data());
+    m_context->VSSetSamplers(0, UINT(Graphics::sampleStates.size()),
+                             Graphics::sampleStates.data());
+    m_context->PSSetSamplers(0, UINT(Graphics::sampleStates.size()),
+                             Graphics::sampleStates.data());
 
     // for cubemap texture
     // vector<ID3D11ShaderResourceView *> commonSRVs = {m_brdfSRV.Get()};
@@ -133,8 +384,21 @@ void Engine::UpdateGUI() {
 
     ImGui::SetNextItemOpen(true, ImGuiCond_Once);
     if (ImGui::TreeNode("Frag")) {
-        ImGui::SliderFloat3("Position", &translationGUI.x, -5.0f, 5.0f);
-        m_mainObj->UpdateWorldRow(Matrix::CreateTranslation(translationGUI));
+        // Move
+        Vector3 transition = m_mainObj->m_worldRow.Translation();
+        m_mainObj->m_worldRow.Translation(Vector3(0.0f));
+        ImGui::SliderFloat3("Position", &transition.x, -5.0f, 5.0f);
+
+        // Rotation
+        ImGui::SliderFloat3("Roation", &rotationGUI.x, -1.0f, 1.0f);
+
+        m_mainObj->UpdateWorldRow(m_mainObj->m_worldRow *
+                                  Matrix::CreateRotationY(rotationGUI.y) *
+                                  Matrix::CreateRotationX(-rotationGUI.x) *
+                                  Matrix::CreateRotationZ(rotationGUI.z) *
+                                  Matrix::CreateTranslation(transition));
+        m_mainBoundingSphere.Center = m_mainObj->m_worldRow.Translation();
+
         ImGui::TreePop();
     }
 

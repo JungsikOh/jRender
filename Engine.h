@@ -32,7 +32,7 @@ class Engine : public AppBase {
     shared_ptr<Model> m_cursorSphere;
     shared_ptr<Model> m_screenSquare;
 
-    BoundingSphere m_mainBoundingSphere;
+    BoundingSphere m_mainBoundingSphere; // 물체의 여러 조작을 위한 Bounding Sphere
 
     bool m_usePerspectiveProjection = true;
 
@@ -42,7 +42,8 @@ class Engine : public AppBase {
     float m_mirrorAlpha = 1.0f; // Opacity
 
     // For GUI
-    Vector3 translationGUI{0.0f, 1.0f, 0.0f};
+    Quaternion q = Quaternion::CreateFromAxisAngle(Vector3(1.0f, 0.0f, 0.0f), 0.0f);
+    Vector3 rotationGUI = {0.0f, 0.0f, 0.0f};
 
     // 거울이 아닌 물체들의 리스트 (for문으로 그리기 위함)
     vector<shared_ptr<Model>> m_basicList;

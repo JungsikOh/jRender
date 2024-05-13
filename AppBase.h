@@ -68,6 +68,7 @@ class AppBase {
       ComPtr<ID3D11DeviceContext> m_context;
       ComPtr<IDXGISwapChain> m_swapChain;
       ComPtr<ID3D11RenderTargetView> m_backBufferRTV;
+      ComPtr<ID3D11ShaderResourceView> m_backBufferSRV;
 
       // 삼각형 레스터화 -> float(MSAA) -> resolved(No MSAA)
       ComPtr<ID3D11Texture2D> m_floatBuffer;
@@ -96,6 +97,7 @@ class AppBase {
 
       float m_cursorNdcX = 0.0f;
       float m_cursorNdcY = 0.0f;
+      bool m_selected = false; // 물체에 대한 인식
 
       // divide Constant Buffer for making different Passes.
       GlobalConstants m_globalConstsCPU;

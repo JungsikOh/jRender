@@ -167,11 +167,12 @@ void Model::Render(ComPtr<ID3D11DeviceContext> &context) {
             context->VSSetShaderResources(0, 1, mesh->heightSRV.GetAddressOf());
 
             // 물체 렌더링할 때 여러가지 텍스춰 사용 (t0 부터시작)
-            //vector<ID3D11ShaderResourceView *> resViews = {
-            //    mesh->albedoSRV.Get(), mesh->normalSRV.Get(), mesh->aoSRV.Get(),
-            //    mesh->metallicRoughnessSRV.Get(), mesh->emissiveSRV.Get()};
-            //context->PSSetShaderResources(0, UINT(resViews.size()),
-            //                              resViews.data());
+            vector<ID3D11ShaderResourceView *> resViews = {
+                mesh->albedoSRV.Get() /*, mesh->normalSRV.Get(),
+                mesh->aoSRV.Get(),
+                mesh->metallicRoughnessSRV.Get(), mesh->emissiveSRV.Get()*/};
+            context->PSSetShaderResources(0, UINT(resViews.size()),
+                                          resViews.data());
 
             context->IASetVertexBuffers(0, 1, mesh->vertexBuffer.GetAddressOf(),
                                         &mesh->stride, &mesh->offset);

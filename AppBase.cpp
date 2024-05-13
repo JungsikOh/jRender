@@ -60,10 +60,12 @@ int AppBase::Run() {
             TranslateMessage(&msg);
             DispatchMessage(&msg);
         } else {
+
+
             ImGui_ImplDX11_NewFrame();
             ImGui_ImplWin32_NewFrame();
-
             ImGui::NewFrame();
+            ImGui::ShowDemoWindow(); 
             ImGui::Begin("Scene Control");
 
             // ImGui가 측정해주는 Framerate 출력
@@ -72,13 +74,13 @@ int AppBase::Run() {
                         ImGui::GetIO().Framerate);
 
             UpdateGUI(); // 추가적으로 사용할 GUI
-
             ImGui::End();
-            ImGui::Render();
 
             Update(ImGui::GetIO().DeltaTime);
 
             Render(); // <- 중요: 우리가 구현한 렌더링
+
+            ImGui::Render();
 
             // GUI 렌더링
             ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
@@ -265,7 +267,7 @@ bool AppBase::InitDirect3D() {
     sd.BufferCount = 2;
     sd.BufferDesc.RefreshRate.Numerator = 60;  // 분자
     sd.BufferDesc.RefreshRate.Denominator = 1; // 분모
-    sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+    sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT | DXGI_USAGE_SHADER_INPUT;
     sd.OutputWindow = m_mainWindow;
     sd.Windowed = TRUE;
     // IDXGISwapChain::ResizeTarget을 호출하여 애플리케이션이 모드를 전환할 수
@@ -308,6 +310,8 @@ bool AppBase::InitGUI() {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO &io = ImGui::GetIO();
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable some options
+
     (void)io;
     io.DisplaySize = ImVec2(float(m_screenWidth), float(m_screenHeight));
     ImGui::StyleColorsLight();
@@ -323,6 +327,22 @@ bool AppBase::InitGUI() {
     }
 
     return true;
+}
+
+void AppBase::InitCubemaps(wstring basePath, wstring envFilename,
+    wstring specularFilename, wstring irradianceFilename,
+    wstring brdfFilename) {
+
+    // BRDF LookUp Table은 CubeMap이 아니라 2D 텍스춰 입니다.
+    D3D11Utils::CreateDDSTexture(m_device, (basePath + envFilename).c_str(),
+                                 true, m_envSRV);
+    D3D11Utils::CreateDDSTexture(
+        m_device, (basePath + specularFilename).c_str(), true, m_specularSRV);
+    D3D11Utils::CreateDDSTexture(m_device,
+                                 (basePath + irradianceFilename).c_str(), true,
+                                 m_irradianceSRV);
+    D3D11Utils::CreateDDSTexture(m_device, (basePath + brdfFilename).c_str(),
+                                 false, m_brdfSRV);
 }
 
 void AppBase::SetMainViewport() {
@@ -362,7 +382,7 @@ void AppBase::SetPipelineState(const GraphicsPSO &pso) {
 }
 
 void AppBase::CreateBuffers() {
-    // resterlize -> MSAA -> backbuffer
+    // resterlize -> MSAA -> backbuffer 
     // 왜냐하면 지금은 postEffect 적용 안할거니까
 
     ComPtr<ID3D11Texture2D> backBuffer;
@@ -370,6 +390,8 @@ void AppBase::CreateBuffers() {
         m_swapChain->GetBuffer(0, IID_PPV_ARGS(backBuffer.GetAddressOf())));
     ThrowIfFailed(m_device->CreateRenderTargetView(
         backBuffer.Get(), NULL, m_backBufferRTV.GetAddressOf()));
+    m_device->CreateShaderResourceView(backBuffer.Get(), NULL,
+                                       m_backBufferSRV.GetAddressOf());
 
     // 여기 주석을 해제하면 렌더링이 안됌 왜 그런걸까?
 
