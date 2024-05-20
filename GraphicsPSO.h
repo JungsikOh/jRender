@@ -10,7 +10,7 @@ namespace jRenderer {
 // Âü°í: D3D12_GRAPHICS_PIPELINE_STATE_DESC
 // https://learn.microsoft.com/en-us/windows/win32/api/d3d12/ns-d3d12-d3d12_graphics_pipeline_state_desc
 
-class GraphicsPSO {
+class GraphicsPSO { 
   public:
     void operator=(const GraphicsPSO &pso);
     void SetBlendFactor(const float blendFactor[4]);

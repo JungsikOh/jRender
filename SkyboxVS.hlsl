@@ -1,4 +1,18 @@
-float4 main( float4 pos : POSITION ) : SV_POSITION
+#include "Common.hlsli"
+
+struct SkyboxPixelShaderInput
 {
-	return pos;
+    float4 posProj : SV_Position;
+    float3 posModel : Positon;
+};
+
+SkyboxPixelShaderInput main(VertexShaderInput input)
+{
+    SkyboxPixelShaderInput output;
+    output.posModel = input.posModel;
+    output.posProj = mul(float4(input.posModel, 0.0), view);
+    output.posProj = mul(float4(output.posProj.xyz, 1.0), proj);
+    
+    return output;
+    
 }

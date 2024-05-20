@@ -33,10 +33,9 @@ bool Engine::Initialize() {
         vector<Vector3> colors;
         vector<Vector3> normals;
         vector<Vector2> texcoords;
-        float scale = 40.0f;
+        float scale = 25.0f;
 
-        // ½Ã°è ¹Ý´ë ¹æÇâ(¿Þ¼Õ ÁÂÇ¥°è)
-        // À­¸é
+        //// À­¸é
         positions.push_back(Vector3(-1.0f, 1.0f, -1.0f) * scale);
         positions.push_back(Vector3(-1.0f, 1.0f, 1.0f) * scale);
         positions.push_back(Vector3(1.0f, 1.0f, 1.0f) * scale);
@@ -50,15 +49,15 @@ bool Engine::Initialize() {
         normals.push_back(Vector3(0.0f, 1.0f, 0.0f));
         normals.push_back(Vector3(0.0f, 1.0f, 0.0f));
         texcoords.push_back(Vector2(0.0f, 0.0f));
-        texcoords.push_back(Vector2(0.0f, 1.0f));
-        texcoords.push_back(Vector2(1.0f, 1.0f));
         texcoords.push_back(Vector2(1.0f, 0.0f));
+        texcoords.push_back(Vector2(1.0f, 1.0f));
+        texcoords.push_back(Vector2(0.0f, 1.0f));
 
         // ¾Æ·§¸é
         positions.push_back(Vector3(-1.0f, -1.0f, -1.0f) * scale);
-        positions.push_back(Vector3(-1.0f, -1.0f, 1.0f) * scale);
-        positions.push_back(Vector3(1.0f, -1.0f, 1.0f) * scale);
         positions.push_back(Vector3(1.0f, -1.0f, -1.0f) * scale);
+        positions.push_back(Vector3(1.0f, -1.0f, 1.0f) * scale);
+        positions.push_back(Vector3(-1.0f, -1.0f, 1.0f) * scale);
         colors.push_back(Vector3(1.0f, 0.0f, 0.0f));
         colors.push_back(Vector3(1.0f, 0.0f, 0.0f));
         colors.push_back(Vector3(1.0f, 0.0f, 0.0f));
@@ -68,33 +67,33 @@ bool Engine::Initialize() {
         normals.push_back(Vector3(0.0f, -1.0f, 0.0f));
         normals.push_back(Vector3(0.0f, -1.0f, 0.0f));
         texcoords.push_back(Vector2(0.0f, 0.0f));
-        texcoords.push_back(Vector2(0.0f, 1.0f));
-        texcoords.push_back(Vector2(1.0f, 1.0f));
         texcoords.push_back(Vector2(1.0f, 0.0f));
+        texcoords.push_back(Vector2(1.0f, 1.0f));
+        texcoords.push_back(Vector2(0.0f, 1.0f));
 
         // ¾Õ¸é
-        positions.push_back(Vector3(-1.0f, 1.0f, -1.0f) * scale);
         positions.push_back(Vector3(-1.0f, -1.0f, -1.0f) * scale);
-        positions.push_back(Vector3(1.0f, -1.0f, -1.0f) * scale);
+        positions.push_back(Vector3(-1.0f, 1.0f, -1.0f) * scale);
         positions.push_back(Vector3(1.0f, 1.0f, -1.0f) * scale);
-        colors.push_back(Vector3(1.0f, 0.0f, 0.0f));
-        colors.push_back(Vector3(1.0f, 0.0f, 0.0f));
-        colors.push_back(Vector3(1.0f, 0.0f, 0.0f));
-        colors.push_back(Vector3(1.0f, 0.0f, 0.0f));
+        positions.push_back(Vector3(1.0f, -1.0f, -1.0f) * scale);
+        colors.push_back(Vector3(0.0f, 0.0f, 1.0f));
+        colors.push_back(Vector3(0.0f, 0.0f, 1.0f));
+        colors.push_back(Vector3(0.0f, 0.0f, 1.0f));
+        colors.push_back(Vector3(0.0f, 0.0f, 1.0f));
         normals.push_back(Vector3(0.0f, 0.0f, -1.0f));
         normals.push_back(Vector3(0.0f, 0.0f, -1.0f));
         normals.push_back(Vector3(0.0f, 0.0f, -1.0f));
         normals.push_back(Vector3(0.0f, 0.0f, -1.0f));
         texcoords.push_back(Vector2(0.0f, 0.0f));
-        texcoords.push_back(Vector2(0.0f, 1.0f));
-        texcoords.push_back(Vector2(1.0f, 1.0f));
         texcoords.push_back(Vector2(1.0f, 0.0f));
+        texcoords.push_back(Vector2(1.0f, 1.0f));
+        texcoords.push_back(Vector2(0.0f, 1.0f));
 
         // µÞ¸é
-        positions.push_back(Vector3(-1.0f, 1.0f, 1.0f) * scale);
         positions.push_back(Vector3(-1.0f, -1.0f, 1.0f) * scale);
         positions.push_back(Vector3(1.0f, -1.0f, 1.0f) * scale);
         positions.push_back(Vector3(1.0f, 1.0f, 1.0f) * scale);
+        positions.push_back(Vector3(-1.0f, 1.0f, 1.0f) * scale);
         colors.push_back(Vector3(1.0f, 0.0f, 0.0f));
         colors.push_back(Vector3(1.0f, 0.0f, 0.0f));
         colors.push_back(Vector3(1.0f, 0.0f, 0.0f));
@@ -104,45 +103,49 @@ bool Engine::Initialize() {
         normals.push_back(Vector3(0.0f, 0.0f, 1.0f));
         normals.push_back(Vector3(0.0f, 0.0f, 1.0f));
         texcoords.push_back(Vector2(0.0f, 0.0f));
-        texcoords.push_back(Vector2(0.0f, 1.0f));
-        texcoords.push_back(Vector2(1.0f, 1.0f));
         texcoords.push_back(Vector2(1.0f, 0.0f));
+        texcoords.push_back(Vector2(1.0f, 1.0f));
+        texcoords.push_back(Vector2(0.0f, 1.0f));
 
         // ¿Þ¸é
-        positions.push_back(Vector3(1.0f, 1.0f, 1.0f) * scale);
-        positions.push_back(Vector3(1.0f, -1.0f, 1.0f) * scale);
-        positions.push_back(Vector3(1.0f, -1.0f, -1.0f) * scale);
-        positions.push_back(Vector3(1.0f, 1.0f, -1.0f) * scale);
-        colors.push_back(Vector3(1.0f, 0.0f, 0.0f));
-        colors.push_back(Vector3(1.0f, 0.0f, 0.0f));
-        colors.push_back(Vector3(1.0f, 0.0f, 0.0f));
-        colors.push_back(Vector3(1.0f, 0.0f, 0.0f));
-        normals.push_back(Vector3(1.0f, 0.0f, 0.0f));
-        normals.push_back(Vector3(1.0f, 0.0f, 0.0f));
-        normals.push_back(Vector3(1.0f, 0.0f, 0.0f));
-        normals.push_back(Vector3(1.0f, 0.0f, 0.0f));
+        positions.push_back(Vector3(-1.0f, -1.0f, 1.0f) * scale);
+        positions.push_back(Vector3(-1.0f, 1.0f, 1.0f) * scale);
+        positions.push_back(Vector3(-1.0f, 1.0f, -1.0f) * scale);
+        positions.push_back(Vector3(-1.0f, -1.0f, -1.0f) * scale);
+        colors.push_back(Vector3(1.0f, 1.0f, 0.0f));
+        colors.push_back(Vector3(1.0f, 1.0f, 0.0f));
+        colors.push_back(Vector3(1.0f, 1.0f, 0.0f));
+        colors.push_back(Vector3(1.0f, 1.0f, 0.0f));
+        normals.push_back(Vector3(-1.0f, 0.0f, 0.0f));
+        normals.push_back(Vector3(-1.0f, 0.0f, 0.0f));
+        normals.push_back(Vector3(-1.0f, 0.0f, 0.0f));
+        normals.push_back(Vector3(-1.0f, 0.0f, 0.0f));
         texcoords.push_back(Vector2(0.0f, 0.0f));
-        texcoords.push_back(Vector2(0.0f, 1.0f));
-        texcoords.push_back(Vector2(1.0f, 1.0f));
         texcoords.push_back(Vector2(1.0f, 0.0f));
+        texcoords.push_back(Vector2(1.0f, 1.0f));
+        texcoords.push_back(Vector2(0.0f, 1.0f));
 
         // ¿À¸¥¸é
-        positions.push_back(Vector3(-1.0f, 1.0f, 1.0f) * scale);
-        positions.push_back(Vector3(-1.0f, -1.0f, 1.0f) * scale);
-        positions.push_back(Vector3(-1.0f, -1.0f, -1.0f) * scale);
-        positions.push_back(Vector3(-1.0f, 1.0f, -1.0f) * scale);
-        colors.push_back(Vector3(1.0f, 0.0f, 0.0f));
-        colors.push_back(Vector3(1.0f, 0.0f, 0.0f));
-        colors.push_back(Vector3(1.0f, 0.0f, 0.0f));
-        colors.push_back(Vector3(1.0f, 0.0f, 0.0f));
-        normals.push_back(Vector3(-1.0f, 0.0f, 0.0f));
-        normals.push_back(Vector3(-1.0f, 0.0f, 0.0f));
-        normals.push_back(Vector3(-1.0f, 0.0f, 0.0f));
-        normals.push_back(Vector3(-1.0f, 0.0f, 0.0f));
+        positions.push_back(Vector3(1.0f, -1.0f, -1.0f) * scale);
+        positions.push_back(Vector3(1.0f, 1.0f, -1.0f) * scale);
+        positions.push_back(Vector3(1.0f, 1.0f, 1.0f) * scale);
+        positions.push_back(Vector3(1.0f, -1.0f, 1.0f) * scale);
+        // positions.push_back(Vector3(1.0f, -1.0f, 1.0f) * scale);
+        // positions.push_back(Vector3(1.0f, -1.0f, -1.0f) * scale);
+        // positions.push_back(Vector3(1.0f, 1.0f, -1.0f) * scale);
+        // positions.push_back(Vector3(1.0f, 1.0f, 1.0f) * scale);
+        colors.push_back(Vector3(1.0f, 0.0f, 1.0f));
+        colors.push_back(Vector3(1.0f, 0.0f, 1.0f));
+        colors.push_back(Vector3(1.0f, 0.0f, 1.0f));
+        colors.push_back(Vector3(1.0f, 0.0f, 1.0f));
+        normals.push_back(Vector3(1.0f, 0.0f, 0.0f));
+        normals.push_back(Vector3(1.0f, 0.0f, 0.0f));
+        normals.push_back(Vector3(1.0f, 0.0f, 0.0f));
+        normals.push_back(Vector3(1.0f, 0.0f, 0.0f));
         texcoords.push_back(Vector2(0.0f, 0.0f));
-        texcoords.push_back(Vector2(0.0f, 1.0f));
-        texcoords.push_back(Vector2(1.0f, 1.0f));
         texcoords.push_back(Vector2(1.0f, 0.0f));
+        texcoords.push_back(Vector2(1.0f, 1.0f));
+        texcoords.push_back(Vector2(0.0f, 1.0f));
 
         for (UINT i = 0; i < positions.size(); i++) {
             Vertex v;
@@ -164,9 +167,9 @@ bool Engine::Initialize() {
             16, 17, 18, 16, 18,
             19, // ¿ÞÂÊ¸é
             20, 21, 22, 20, 22,
-            23 // ¿À¸¥¸é
+            23 // ¿À¸¥¸é 
         };
-
+        std::reverse(skyBoxMesh.indices.begin(), skyBoxMesh.indices.end());
         m_skybox = make_shared<Model>(m_device, m_context, vector{skyBoxMesh});
     }
 
@@ -221,7 +224,7 @@ void Engine::Update(float dt) {
     m_camera.UpdateKeyboard(dt, m_keyPressed);
 
     const Vector3 eyeWorld = m_camera.GetEyePos();
-    // const Matrix reflectRow = Matrix::CreateReflection(m_mirrorPlane);
+    // const Matrix reflectRow = Matrix::CreateReflection(m_mirrorPlane); 
     const Matrix viewRow = m_camera.GetViewRow();
     const Matrix projRow = m_camera.GetProjRow();
 
@@ -349,10 +352,11 @@ void Engine::Render() {
                              Graphics::sampleStates.data());
 
     // for cubemap texture
-    // vector<ID3D11ShaderResourceView *> commonSRVs = {m_brdfSRV.Get()};
-    // m_context->PSSetShaderResources(10,
-    //                                UINT(commonSRVs.size(),
-    //                                commonSRVs.data()));
+    vector<ID3D11ShaderResourceView *> commonSRVs = {
+        m_specularSRV.Get(), m_irradianceSRV.Get(), m_envSRV.Get(),
+        m_brdfSRV.Get()};
+    m_context->PSSetShaderResources(10, UINT(commonSRVs.size()),
+                                    commonSRVs.data());
 
     const float clearColor[4] = {0.0f, 0.0f, 0.0f, 1.0f};
     vector<ID3D11RenderTargetView *> RTVs = {m_backBufferRTV.Get()};
@@ -365,9 +369,13 @@ void Engine::Render() {
     m_context->OMSetRenderTargets(UINT(RTVs.size()), RTVs.data(),
                                   m_depthStencilView.Get());
 
-    AppBase::SetPipelineState(Graphics::defaultSolidPSO);
-
     AppBase::SetGlobalConsts(m_globalConstsGPU);
+
+    // skybox
+    AppBase::SetPipelineState(Graphics::skyboxSolidPSO);
+    //m_skybox->Render(m_context);
+
+    AppBase::SetPipelineState(Graphics::defaultSolidPSO);
 
     for (auto &i : m_basicList) {
         i->Render(m_context);
@@ -383,7 +391,7 @@ void Engine::UpdateGUI() {
     }
 
     ImGui::SetNextItemOpen(true, ImGuiCond_Once);
-    if (ImGui::TreeNode("Frag")) {
+    if (ImGui::TreeNode("obj1")) {
         // Move
         Vector3 transition = m_mainObj->m_worldRow.Translation();
         m_mainObj->m_worldRow.Translation(Vector3(0.0f));
@@ -398,6 +406,14 @@ void Engine::UpdateGUI() {
                                   Matrix::CreateRotationZ(rotationGUI.z) *
                                   Matrix::CreateTranslation(transition));
         m_mainBoundingSphere.Center = m_mainObj->m_worldRow.Translation();
+
+        int flag = 0;
+        flag += ImGui::CheckboxFlags("Normal Map",
+                             &m_mainObj->m_materialConstsCPU.useNormalMap, 1);
+
+        if (flag) {
+            m_mainObj->UpdateConstantBuffers(m_device, m_context);
+        }
 
         ImGui::TreePop();
     }

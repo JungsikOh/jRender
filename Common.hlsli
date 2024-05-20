@@ -11,6 +11,13 @@
 SamplerState linearWrapSampler : register(s0);
 SamplerState linearClampSampler : register(s1);
 
+// 공용 텍스쳐들은 t10부터 시작
+TextureCube specularIBLTex : register(t10);
+TextureCube irradianceIBLTex : register(t11);
+TextureCube envIBLTex : register(t12);
+Texture2D brdfTex : register(t13);
+
+
 struct Light
 {
     float3 radiance;
@@ -40,9 +47,9 @@ cbuffer GlobalConstants : register(b1)
     float3 eyeWorld;
     float strengthIBL;
     
-    int textureToDraw = 0;
-    float envLodBias = 0.0f;
-    float lodBias = 2.0f;
+    int textureToDraw;
+    float envLodBias;
+    float lodBias;
     float dummy2;
     
     Light lights[MAX_LIGHTS];

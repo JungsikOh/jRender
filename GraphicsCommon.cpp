@@ -374,4 +374,9 @@ void Graphics::InitPipelineStates(ComPtr<ID3D11Device> &device) {
     //postProcessingPSO.m_rasterizerState = postProcessingRS;
 }
 
+void Graphics::ShutdownStates() { 
+    //defaultSolidPSO.m_vertexShader->Release();
+    //skyboxSolidPSO.m_vertexShader->Release();
+}
+
 }

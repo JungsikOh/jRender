@@ -65,7 +65,6 @@ int AppBase::Run() {
             ImGui_ImplDX11_NewFrame();
             ImGui_ImplWin32_NewFrame();
             ImGui::NewFrame();
-            ImGui::ShowDemoWindow(); 
             ImGui::Begin("Scene Control");
 
             // ImGui가 측정해주는 Framerate 출력
@@ -75,16 +74,15 @@ int AppBase::Run() {
 
             UpdateGUI(); // 추가적으로 사용할 GUI
             ImGui::End();
+            ImGui::Render();
 
             Update(ImGui::GetIO().DeltaTime);
 
-            Render(); // <- 중요: 우리가 구현한 렌더링
-
-            ImGui::Render();
+            Render(); // <- 중요: 우리가 구현한 렌더
 
             // GUI 렌더링
             ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
-
+            Graphics::ShutdownStates();
             // GUI 렌더링 후에 Present() 호출
             m_swapChain->Present(1, 0);
         }
@@ -310,8 +308,6 @@ bool AppBase::InitGUI() {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO &io = ImGui::GetIO();
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable some options
-
     (void)io;
     io.DisplaySize = ImVec2(float(m_screenWidth), float(m_screenHeight));
     ImGui::StyleColorsLight();

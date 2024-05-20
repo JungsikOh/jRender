@@ -3,7 +3,7 @@
 namespace jRenderer {
 
 void GraphicsPSO::operator=(const GraphicsPSO &pso) {
-    m_vertexShader = pso.m_vertexShader;
+    m_vertexShader = pso.m_vertexShader;   
     m_pixelShader = pso.m_pixelShader;
     m_hullShader = pso.m_hullShader;
     m_domainShader = pso.m_domainShader;

@@ -41,7 +41,7 @@ PixelShaderInput main(VertexShaderInput input)
     
     output.posProj = pos;
     output.texcoord = input.texcoord;
-    output.tangentWorld = tangentWorld.xyz;
+    output.tangentWorld = normalize(tangentWorld.xyz);
     
     return output;
   

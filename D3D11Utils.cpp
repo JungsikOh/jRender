@@ -122,7 +122,9 @@ CreateStagingTexture(ComPtr<ID3D11Device> &device,
     D3D11_MAPPED_SUBRESOURCE ms;
     context->Map(stagingTexture.Get(), NULL, D3D11_MAP_WRITE, NULL,
                  &ms); // staginTexture에 대한 포인터에 다가 map을 설정(?)
-    uint8_t *pData = (uint8_t *)ms.pData; // Texture2D의 내부구조는 배열과 같은 형태를 띄고 있으므로 아래와 같이 코드를 작성하는 것이다.
+    uint8_t *pData =
+        (uint8_t *)ms.pData; // Texture2D의 내부구조는 배열과 같은 형태를 띄고
+                             // 있으므로 아래와 같이 코드를 작성하는 것이다.
     for (UINT h = 0; h < UINT(height); h++) { // 가로줄 한 줄씩 복사
         memcpy(&pData[h * ms.RowPitch], &image[h * width * pixelSize],
                width * pixelSize);
@@ -183,8 +185,8 @@ void D3D11Utils::CreateVertexShaderAndInputLayout(
     ComPtr<ID3D11VertexShader> &m_vertexShader,
     ComPtr<ID3D11InputLayout> &m_inputLayout) {
 
-    ComPtr<ID3DBlob> shaderBlob;
-    ComPtr<ID3DBlob> errorBlob;
+    ID3DBlob* shaderBlob;
+    ID3DBlob* errorBlob;
 
     UINT compileFlags = 0;
 #if defined(DEBUG) || defined(_DEBUG)
@@ -197,7 +199,7 @@ void D3D11Utils::CreateVertexShaderAndInputLayout(
         filename.c_str(), 0, D3D_COMPILE_STANDARD_FILE_INCLUDE, "main",
         "vs_5_0", compileFlags, 0, &shaderBlob, &errorBlob);
 
-    CheckResult(hr, errorBlob.Get());
+    CheckResult(hr, errorBlob);
 
     device->CreateVertexShader(shaderBlob->GetBufferPointer(),
                                shaderBlob->GetBufferSize(), NULL,
@@ -398,8 +400,8 @@ void D3D11Utils::CreateTexture(ComPtr<ID3D11Device> &device,
 }
 
 void D3D11Utils::CreateDDSTexture(
-    ComPtr<ID3D11Device>& device, const wchar_t* filename, bool isCubeMap,
-    ComPtr<ID3D11ShaderResourceView>& textureResourceView) {
+    ComPtr<ID3D11Device> &device, const wchar_t *filename, bool isCubeMap,
+    ComPtr<ID3D11ShaderResourceView> &textureResourceView) {
 
     ComPtr<ID3D11Texture2D> texture;
 
@@ -408,11 +410,11 @@ void D3D11Utils::CreateDDSTexture(
         miscFlags |= D3D11_RESOURCE_MISC_TEXTURECUBE;
     }
 
-    ThrowIfFailed(CreateDDSTextureFromFileEx(device.Get(), filename, 0, D3D11_USAGE_DEFAULT,
-                               D3D11_BIND_SHADER_RESOURCE, 0, miscFlags,
-                               DDS_LOADER_FLAGS(false),
-                               (ID3D11Resource **)texture.GetAddressOf(),
-                               textureResourceView.GetAddressOf(), NULL));
+    ThrowIfFailed(CreateDDSTextureFromFileEx(
+        device.Get(), filename, 0, D3D11_USAGE_DEFAULT,
+        D3D11_BIND_SHADER_RESOURCE, 0, miscFlags, DDS_LOADER_FLAGS(false),
+        (ID3D11Resource **)texture.GetAddressOf(),
+        textureResourceView.GetAddressOf(), NULL));
 }
 
 } // namespace jRenderer

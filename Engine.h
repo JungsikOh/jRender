@@ -41,7 +41,7 @@ class Engine : public AppBase {
     DirectX::SimpleMath::Plane m_mirrorPlane;
     float m_mirrorAlpha = 1.0f; // Opacity
 
-    // For GUI
+    // For GUI 
     Quaternion q = Quaternion::CreateFromAxisAngle(Vector3(1.0f, 0.0f, 0.0f), 0.0f);
     Vector3 rotationGUI = {0.0f, 0.0f, 0.0f};
 

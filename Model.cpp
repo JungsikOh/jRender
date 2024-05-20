@@ -24,7 +24,7 @@ vector<MeshData> Model::ReadFromFile(std::string basePath, std::string filename,
             vmax.z = XMMax(vmax.z, v.position.z);
         }
     }
-    
+
     // 정규화 과정 [-1, 1] 범위로 바꿔줌으로써 NDC 규격을 맞추는 것이다.
     float dx = vmax.x - vmin.x, dy = vmax.y - vmin.y, dz = vmax.z - vmin.z;
     float dl = XMMax(XMMax(dx, dy), dz);
@@ -168,9 +168,8 @@ void Model::Render(ComPtr<ID3D11DeviceContext> &context) {
 
             // 물체 렌더링할 때 여러가지 텍스춰 사용 (t0 부터시작)
             vector<ID3D11ShaderResourceView *> resViews = {
-                mesh->albedoSRV.Get() /*, mesh->normalSRV.Get(),
-                mesh->aoSRV.Get(),
-                mesh->metallicRoughnessSRV.Get(), mesh->emissiveSRV.Get()*/};
+                mesh->albedoSRV.Get(), mesh->normalSRV.Get(), mesh->aoSRV.Get(),
+                mesh->metallicRoughnessSRV.Get(), mesh->emissiveSRV.Get()};
             context->PSSetShaderResources(0, UINT(resViews.size()),
                                           resViews.data());
 
@@ -180,7 +179,7 @@ void Model::Render(ComPtr<ID3D11DeviceContext> &context) {
             context->IASetIndexBuffer(mesh->indexBuffer.Get(),
                                       DXGI_FORMAT_R32_UINT, 0);
             context->DrawIndexed(mesh->indexCount, 0, 0);
-            //std::cout << mesh->indexCount << std::endl;
+            // std::cout << mesh->indexCount << std::endl;
         }
     }
 }
@@ -204,5 +203,4 @@ void Model::UpdateWorldRow(const Matrix &worldRow) {
     m_meshConstsCPU.worldIT = m_worldITRow.Transpose();
 }
 
-}
-
+} // namespace jRenderer

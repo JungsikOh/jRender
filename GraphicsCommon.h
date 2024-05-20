@@ -66,6 +66,7 @@ extern GraphicsPSO postEffectsPSO;
 extern GraphicsPSO postProcessingPSO;
 
 void InitCommonStates(ComPtr<ID3D11Device> &device);
+void ShutdownStates();
 
 // 내부적으로 InitCommonStates()에서 사용
 void InitSamplers(ComPtr<ID3D11Device> &device);

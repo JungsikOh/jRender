@@ -27,6 +27,7 @@ __declspec(align(256)) struct MeshConstants {
 
 // It's used in Pixel Shader.
 __declspec(align(256)) struct MaterialConstants { 
+
     Vector3 albedoFactor = Vector3(1.0f);
     float roughnessFactor = 1.0f;
     float metallicFactor = 1.0f;
@@ -37,11 +38,11 @@ __declspec(align(256)) struct MaterialConstants {
     int useNormalMap = 0;
     int useAOMap = 0;
     int invertNormalMapY = 0;
+
     int useMetallicMap = 0;
     int useRoughnessMap = 0;
     int useEmissiveMap = 0;
-    int useBlinnPhong = 1;
-    int useBRDF = 0;
+    float dummy = 0.0f;
 
     /* union {
         uint32_t flags;
@@ -70,7 +71,7 @@ struct Light {
     float fallOffStart = 0.0f;
     Vector3 direction = Vector3(0.0f, 0.0f, 1.0f);
     float fallOffEnd = 20.0f;
-    Vector3 position = Vector3(0.0f, 0.0f, -2.0f);
+    Vector3 position = Vector3(0.0f, 0.0f, -2.0f); 
     float spotPower = 3.0f;
     Vector3 lightColor = Vector3(0.3f);
     float dummy1;
@@ -81,7 +82,7 @@ struct Light {
     float radius = 0.0f;
     Vector2 dummy;
 
-    Matrix viewProj; // need to render shadow.
+    Matrix viewProj; // need to render shadow. 
     Matrix invProj;  // need to debug shadow rendering.
 };
 
@@ -94,7 +95,7 @@ __declspec(align(256)) struct GlobalConstants {
     Matrix invViewProj; // Proj -> World
 
     Vector3 eyeWorld;
-    float strengthIBL = 0.0f;
+    float strengthIBL = 1.0f;
 
     int textureToDraw = 0; // 0: Env, 1: Specular, 2: Irradiance, 그외: 검은색
     float envLodBias = 0.0f; // envMap LodBias
