@@ -58,7 +58,7 @@ class AppBase {
 
   public:
       int m_screenWidth;
-      int m_screenHeight;
+      int m_screenHeight;        
       HWND m_mainWindow;
       bool m_useMSAA = true;
       UINT m_numQualityLevels = 0;
@@ -69,6 +69,7 @@ class AppBase {
       ComPtr<IDXGISwapChain> m_swapChain;
       ComPtr<ID3D11RenderTargetView> m_backBufferRTV;
       ComPtr<ID3D11ShaderResourceView> m_backBufferSRV;
+
 
       // 삼각형 레스터화 -> float(MSAA) -> resolved(No MSAA)
       ComPtr<ID3D11Texture2D> m_floatBuffer;

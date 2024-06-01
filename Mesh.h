@@ -32,7 +32,7 @@ struct Mesh {
 
     ComPtr<ID3D11ShaderResourceView> albedoSRV;   
     ComPtr<ID3D11ShaderResourceView> emissiveSRV;
-    ComPtr<ID3D11ShaderResourceView> normalSRV;
+    ComPtr<ID3D11ShaderResourceView> normalSRV; 
     ComPtr<ID3D11ShaderResourceView> heightSRV;
     ComPtr<ID3D11ShaderResourceView> aoSRV;
     ComPtr<ID3D11ShaderResourceView> metallicRoughnessSRV;

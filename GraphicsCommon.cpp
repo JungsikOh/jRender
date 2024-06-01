@@ -268,8 +268,8 @@ void Graphics::InitShaders(ComPtr<ID3D11Device> &device) {
     //    device, L"SamplingVS.hlsl", samplingIED, samplingVS, samplingIL);
     D3D11Utils::CreateVertexShaderAndInputLayout(device, L"SkyboxVS.hlsl",
                                                  skyboxIE, skyboxVS, skyboxIL);
-    //D3D11Utils::CreateVertexShaderAndInputLayout(
-    //    device, L"DepthOnlyVS.hlsl", basicIEs, depthOnlyVS, skyboxIL);
+    D3D11Utils::CreateVertexShaderAndInputLayout(
+        device, L"DepthOnlyVS.hlsl", basicIEs, depthOnlyVS, skyboxIL);
 
     D3D11Utils::CreatePixelShader(device, L"BasicPS.hlsl", basicPS);
     //D3D11Utils::CreatePixelShader(device, L"NormalPS.hlsl", normalPS);
@@ -277,7 +277,7 @@ void Graphics::InitShaders(ComPtr<ID3D11Device> &device) {
     //D3D11Utils::CreatePixelShader(device, L"CombinePS.hlsl", combinePS);
     //D3D11Utils::CreatePixelShader(device, L"BloomDownPS.hlsl", bloomDownPS);
     //D3D11Utils::CreatePixelShader(device, L"BloomUpPS.hlsl", bloomUpPS);
-    //D3D11Utils::CreatePixelShader(device, L"DepthOnlyPS.hlsl", depthOnlyPS);
+    D3D11Utils::CreatePixelShader(device, L"DepthOnlyPS.hlsl", depthOnlyPS);
     //D3D11Utils::CreatePixelShader(device, L"PostEffectsPS.hlsl", postEffectsPS);
 
     //D3D11Utils::CreateGeometryShader(device, L"NormalGS.hlsl", normalGS);
@@ -356,10 +356,10 @@ void Graphics::InitPipelineStates(ComPtr<ID3D11Device> &device) {
     //normalsPSO.m_pixelShader = normalPS;
     //normalsPSO.m_primitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_POINTLIST;
 
-    //// depthOnlyPSO
-    //depthOnlyPSO = defaultSolidPSO;
-    //depthOnlyPSO.m_vertexShader = depthOnlyVS;
-    //depthOnlyPSO.m_pixelShader = depthOnlyPS;
+    // depthOnlyPSO
+    depthOnlyPSO = defaultSolidPSO;
+    depthOnlyPSO.m_vertexShader = depthOnlyVS;
+    depthOnlyPSO.m_pixelShader = depthOnlyPS;
 
     //// postEffectsPSO
     //postEffectsPSO.m_vertexShader = samplingVS;

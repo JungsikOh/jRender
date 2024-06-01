@@ -6,6 +6,7 @@
 #include <tuple>
 #include <vector>
 
+#include "GeometryGenerator.h"
 #include "GraphicsCommon.h"
 
 namespace jRenderer {
@@ -25,6 +26,13 @@ bool Engine::Initialize() {
     AppBase::InitCubemaps(L"Assets/SkyBox/", L"normalSkyEnvHDR.dds",
                           L"normalSkySpecularHDR.dds",
                           L"normalSkyDiffuseHDR.dds", L"normalSkyBrdf.dds");
+
+    // 후처리용 박스
+    {
+        MeshData screenBox = GeometryGenerator::MakeSquare();
+        m_screenSquare =
+            make_shared<Model>(m_device, m_context, vector{screenBox});
+    }
 
     // Skybox object
     {
@@ -167,10 +175,22 @@ bool Engine::Initialize() {
             16, 17, 18, 16, 18,
             19, // 왼쪽면
             20, 21, 22, 20, 22,
-            23 // 오른면 
+            23 // 오른면
         };
         std::reverse(skyBoxMesh.indices.begin(), skyBoxMesh.indices.end());
         m_skybox = make_shared<Model>(m_device, m_context, vector{skyBoxMesh});
+    }
+
+    // 바닥 오브젝트
+    {
+        MeshData ground = GeometryGenerator::MakeSquare(10.0f);
+        m_ground = make_shared<Model>(m_device, m_context, vector{ground});
+        m_ground->UpdateWorldRow(
+            Matrix::CreateRotationX(1.0f / 2.0f * 3.141592f) *
+            Matrix::CreateTranslation(Vector3(0.0f, 0.0f, 0.0f)));
+        m_ground->m_materialConstsCPU.albedoFactor = Vector3(0.8f, 0.3f, 0.2f);
+
+        m_basicList.push_back(m_ground);
     }
 
     // Main Object
@@ -216,6 +236,27 @@ bool Engine::Initialize() {
         // 조명 2는 꺼놓음
         m_globalConstsCPU.lights[2].type = LIGHT_OFF;
     }
+
+    // 조명 그리기
+    {
+        for (int i = 0; i < MAX_LIGHTS; i++) {
+            MeshData sphere = GeometryGenerator::MakeSphere(1.0f, 20, 20);
+            m_lightSphere[i] =
+                make_shared<Model>(m_device, m_context, vector{sphere});
+            m_lightSphere[i]->UpdateWorldRow(Matrix::CreateTranslation(
+                m_globalConstsCPU.lights[i].position));
+            m_lightSphere[i]->m_materialConstsCPU.albedoFactor =
+                Vector3(0.0f, 0.0f, 1.0f);
+            m_lightSphere[i]->m_materialConstsCPU.emissionFactor =
+                Vector3(1.0f, 0.0f, 0.0f);
+            m_lightSphere[i]->m_castShadow = false;
+
+            if (m_globalConstsCPU.lights[i].type == LIGHT_OFF)
+                m_lightSphere[i]->m_isVisible = false;
+
+            m_basicList.push_back(m_lightSphere[i]);
+        }
+    }
     return true;
 }
 
@@ -224,7 +265,7 @@ void Engine::Update(float dt) {
     m_camera.UpdateKeyboard(dt, m_keyPressed);
 
     const Vector3 eyeWorld = m_camera.GetEyePos();
-    // const Matrix reflectRow = Matrix::CreateReflection(m_mirrorPlane); 
+    // const Matrix reflectRow = Matrix::CreateReflection(m_mirrorPlane);
     const Matrix viewRow = m_camera.GetViewRow();
     const Matrix projRow = m_camera.GetProjRow();
 
@@ -232,12 +273,12 @@ void Engine::Update(float dt) {
     AppBase::UpdateGlobalConstants(eyeWorld, viewRow, projRow);
 
     // 조명의 위치 반영
-    // for (int i = 0; i < MAX_LIGHTS; i++) {
-    //    m_lightSphere[i]->UpdateWorldRow(
-    //        Matrix::CreateScale(
-    //            std::max(0.01f, m_globalConstsCPU.lights[i].radius)) *
-    //        Matrix::CreateTranslation(m_globalConstsCPU.lights[i].position));
-    //}
+    for (int i = 0; i < MAX_LIGHTS; i++) {
+        m_lightSphere[i]->UpdateWorldRow(
+            Matrix::CreateScale(
+                std::max(0.01f, m_globalConstsCPU.lights[i].radius)) *
+            Matrix::CreateTranslation(m_globalConstsCPU.lights[i].position));
+    }
 
     static float prevRatio = 0.0f;
     static Vector3 prevPos(0.0f);
@@ -360,6 +401,22 @@ void Engine::Render() {
 
     const float clearColor[4] = {0.0f, 0.0f, 0.0f, 1.0f};
     vector<ID3D11RenderTargetView *> RTVs = {m_backBufferRTV.Get()};
+    AppBase::SetGlobalConsts(m_globalConstsGPU);
+
+    // Depth Pass Only
+    m_context->ClearDepthStencilView(m_depthOnlyDSV.Get(), D3D11_CLEAR_DEPTH,
+                                     1.0f, 0);
+    m_context->OMSetRenderTargets(0, NULL, m_depthOnlyDSV.Get());
+
+    AppBase::SetPipelineState(Graphics::defaultSolidPSO);
+
+    for (auto &i : m_basicList) {
+        if (i->m_isVisible)
+            i->Render(m_context);
+    }
+    m_skybox->Render(m_context);
+
+    // 원래 그리기
     for (size_t i = 0; i < RTVs.size(); i++) {
         m_context->ClearRenderTargetView(RTVs[i], clearColor);
     }
@@ -369,17 +426,22 @@ void Engine::Render() {
     m_context->OMSetRenderTargets(UINT(RTVs.size()), RTVs.data(),
                                   m_depthStencilView.Get());
 
+    AppBase::SetPipelineState(Graphics::defaultSolidPSO);
     AppBase::SetGlobalConsts(m_globalConstsGPU);
 
-    // skybox
-    AppBase::SetPipelineState(Graphics::skyboxSolidPSO);
-    //m_skybox->Render(m_context);
-
-    AppBase::SetPipelineState(Graphics::defaultSolidPSO);
-
     for (auto &i : m_basicList) {
-        i->Render(m_context);
+        if (i->m_isVisible)
+            i->Render(m_context);
     }
+    AppBase::SetPipelineState(Graphics::skyboxSolidPSO);
+    m_skybox->Render(m_context);
+
+
+    AppBase::SetPipelineState(Graphics::depthOnlyPSO);
+    vector<ID3D11ShaderResourceView *> depthViews = {m_depthOnlySRV.Get()};
+    m_context->PSSetShaderResources(20, UINT(depthViews.size()),
+                                    depthViews.data());
+    m_screenSquare->Render(m_context);
 }
 
 void Engine::UpdateGUI() {
@@ -398,7 +460,7 @@ void Engine::UpdateGUI() {
         ImGui::SliderFloat3("Position", &transition.x, -5.0f, 5.0f);
 
         // Rotation
-        ImGui::SliderFloat3("Roation", &rotationGUI.x, -1.0f, 1.0f);
+        ImGui::SliderFloat3("Roation", &rotationGUI.x, 0.0f, 1.0f);
 
         m_mainObj->UpdateWorldRow(m_mainObj->m_worldRow *
                                   Matrix::CreateRotationY(rotationGUI.y) *
@@ -408,8 +470,8 @@ void Engine::UpdateGUI() {
         m_mainBoundingSphere.Center = m_mainObj->m_worldRow.Translation();
 
         int flag = 0;
-        flag += ImGui::CheckboxFlags("Normal Map",
-                             &m_mainObj->m_materialConstsCPU.useNormalMap, 1);
+        flag += ImGui::CheckboxFlags(
+            "Normal Map", &m_mainObj->m_materialConstsCPU.useNormalMap, 1);
 
         if (flag) {
             m_mainObj->UpdateConstantBuffers(m_device, m_context);

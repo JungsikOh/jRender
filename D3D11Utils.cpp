@@ -331,7 +331,7 @@ void D3D11Utils::CreateMetallicRoughnessTexture(
     const std::string metallicFilename, const std::string roughnessFilename,
     ComPtr<ID3D11Texture2D> &texture, ComPtr<ID3D11ShaderResourceView> &srv) {
 
-    // GLTF 방식은 이미 합쳐져 있음
+    // GLTF 방식은 이미 합쳐져 있음  
     if (!metallicFilename.empty() && (metallicFilename == roughnessFilename)) {
         CreateTexture(device, context, metallicFilename, false, texture, srv);
     } else {

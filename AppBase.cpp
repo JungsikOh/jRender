@@ -61,7 +61,6 @@ int AppBase::Run() {
             DispatchMessage(&msg);
         } else {
 
-
             ImGui_ImplDX11_NewFrame();
             ImGui_ImplWin32_NewFrame();
             ImGui::NewFrame();
@@ -82,7 +81,7 @@ int AppBase::Run() {
 
             // GUI 렌더링
             ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
-            Graphics::ShutdownStates();
+
             // GUI 렌더링 후에 Present() 호출
             m_swapChain->Present(1, 0);
         }
@@ -326,8 +325,8 @@ bool AppBase::InitGUI() {
 }
 
 void AppBase::InitCubemaps(wstring basePath, wstring envFilename,
-    wstring specularFilename, wstring irradianceFilename,
-    wstring brdfFilename) {
+                           wstring specularFilename, wstring irradianceFilename,
+                           wstring brdfFilename) {
 
     // BRDF LookUp Table은 CubeMap이 아니라 2D 텍스춰 입니다.
     D3D11Utils::CreateDDSTexture(m_device, (basePath + envFilename).c_str(),
@@ -359,26 +358,26 @@ void AppBase::SetGlobalConsts(ComPtr<ID3D11Buffer> &globalConstsGPU) {
     // 쉐이더와 일관성 유지 register(b1)
     m_context->VSSetConstantBuffers(1, 1, globalConstsGPU.GetAddressOf());
     m_context->PSSetConstantBuffers(1, 1, globalConstsGPU.GetAddressOf());
-    //m_context->GSSetConstantBuffers(1, 1, globalConstsGPU.GetAddressOf());
+    // m_context->GSSetConstantBuffers(1, 1, globalConstsGPU.GetAddressOf());
 }
 
 void AppBase::SetPipelineState(const GraphicsPSO &pso) {
     m_context->VSSetShader(pso.m_vertexShader.Get(), 0, 0);
     m_context->PSSetShader(pso.m_pixelShader.Get(), 0, 0);
-    //m_context->HSSetShader(pso.m_hullShader.Get(), 0, 0);
-    //m_context->DSSetShader(pso.m_domainShader.Get(), 0, 0);
-    //m_context->GSSetShader(pso.m_geometryShader.Get(), 0, 0);
+    // m_context->HSSetShader(pso.m_hullShader.Get(), 0, 0);
+    // m_context->DSSetShader(pso.m_domainShader.Get(), 0, 0);
+    // m_context->GSSetShader(pso.m_geometryShader.Get(), 0, 0);
     m_context->IASetInputLayout(pso.m_inputLayout.Get());
     m_context->RSSetState(pso.m_rasterizerState.Get());
-    //m_context->OMSetBlendState(pso.m_blendState.Get(), pso.m_blendFactor,
-    //                           0xffffffff);
+    // m_context->OMSetBlendState(pso.m_blendState.Get(), pso.m_blendFactor,
+    //                            0xffffffff);
     m_context->OMSetDepthStencilState(pso.m_depthStencilState.Get(),
                                       pso.m_stencilRef);
     m_context->IASetPrimitiveTopology(pso.m_primitiveTopology);
 }
 
 void AppBase::CreateBuffers() {
-    // resterlize -> MSAA -> backbuffer 
+    // resterlize -> MSAA -> backbuffer
     // 왜냐하면 지금은 postEffect 적용 안할거니까
 
     ComPtr<ID3D11Texture2D> backBuffer;
@@ -386,36 +385,37 @@ void AppBase::CreateBuffers() {
         m_swapChain->GetBuffer(0, IID_PPV_ARGS(backBuffer.GetAddressOf())));
     ThrowIfFailed(m_device->CreateRenderTargetView(
         backBuffer.Get(), NULL, m_backBufferRTV.GetAddressOf()));
-    m_device->CreateShaderResourceView(backBuffer.Get(), NULL,
-                                       m_backBufferSRV.GetAddressOf());
+    ThrowIfFailed(m_device->CreateShaderResourceView(
+        backBuffer.Get(), NULL, m_backBufferSRV.GetAddressOf()));
 
     // 여기 주석을 해제하면 렌더링이 안됌 왜 그런걸까?
 
     //// set FLOAT MSAA RTV / SRV
-    //ThrowIfFailed(m_device->CheckMultisampleQualityLevels(
-    //    DXGI_FORMAT_R16G16B16A16_FLOAT, 4, &m_numQualityLevels));
+    // ThrowIfFailed(m_device->CheckMultisampleQualityLevels(
+    //     DXGI_FORMAT_R16G16B16A16_FLOAT, 4, &m_numQualityLevels));
 
-    //D3D11_TEXTURE2D_DESC desc;
-    //backBuffer->GetDesc(&desc);
-    //desc.MipLevels = desc.ArraySize = 1;
-    //desc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
-    //desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-    //desc.Usage = D3D11_USAGE_DEFAULT; // It can copy from staging texture.
-    //desc.MiscFlags = 0;
-    //desc.CPUAccessFlags = 0;
-    //if (m_useMSAA && m_numQualityLevels) {
-    //    desc.SampleDesc.Count = 4;
-    //    desc.SampleDesc.Quality = m_numQualityLevels - 1;
-    //} else {
-    //    desc.SampleDesc.Count = 1;
-    //    desc.SampleDesc.Quality = 0;
-    //}
+    // D3D11_TEXTURE2D_DESC desc;
+    // backBuffer->GetDesc(&desc);
+    // desc.MipLevels = desc.ArraySize = 1;
+    // desc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+    // desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+    // desc.Usage = D3D11_USAGE_DEFAULT; // It can copy from staging texture.
+    // desc.MiscFlags = 0;
+    // desc.CPUAccessFlags = 0;
+    // if (m_useMSAA && m_numQualityLevels) {
+    //     desc.SampleDesc.Count = 4;
+    //     desc.SampleDesc.Quality = m_numQualityLevels - 1;
+    // } else {
+    //     desc.SampleDesc.Count = 1;
+    //     desc.SampleDesc.Quality = 0;
+    // }
 
-    //ThrowIfFailed(
-    //    m_device->CreateTexture2D(&desc, NULL, m_floatBuffer.GetAddressOf()));
+    // ThrowIfFailed(
+    //     m_device->CreateTexture2D(&desc, NULL,
+    //     m_floatBuffer.GetAddressOf()));
 
-    //ThrowIfFailed(m_device->CreateRenderTargetView(m_floatBuffer.Get(), NULL,
-    //                                               m_floatRTV.GetAddressOf()));       
+    // ThrowIfFailed(m_device->CreateRenderTargetView(m_floatBuffer.Get(), NULL,
+    //                                                m_floatRTV.GetAddressOf()));
 
     CreateDepthBuffers();
 }
@@ -440,13 +440,13 @@ void AppBase::UpdateGlobalConstants(const Vector3 &eyeWorld,
     // m_reflectGlobalConstsCPU.viewProj = (refl * viewRow *
     // projRow).Transpose();
     //// 그림자 렌더링에 사용 (TODO: 광원의 위치도 반사시킨 후에 계산해야 함)
-    // m_reflectGlobalConstsCPU.invViewProj = 
+    // m_reflectGlobalConstsCPU.invViewProj =
     //     m_reflectGlobalConstsCPU.viewProj.Invert();
 
     D3D11Utils::UpdateBuffer(m_device, m_context, m_globalConstsCPU,
                              m_globalConstsGPU);
     // D3D11Utils::UpdateBuffer(m_device, m_context, m_reflectGlobalConstsCPU,
-    //                          m_reflectGlobalConstsGPU); 
+    //                          m_reflectGlobalConstsGPU);
 }
 
 void AppBase::CreateDepthBuffers() {
@@ -475,6 +475,30 @@ void AppBase::CreateDepthBuffers() {
         m_device->CreateTexture2D(&desc, 0, depthStencilBuffer.GetAddressOf()));
     ThrowIfFailed(m_device->CreateDepthStencilView(
         depthStencilBuffer.Get(), NULL, m_depthStencilView.GetAddressOf()));
+
+    // Depth 전용
+    desc.Format = DXGI_FORMAT_R32_TYPELESS;
+    desc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
+    desc.SampleDesc.Count = 1;
+    desc.SampleDesc.Quality = 0;
+    ThrowIfFailed(m_device->CreateTexture2D(&desc, NULL,
+                                            m_depthOnlyBuffer.GetAddressOf()));
+
+    D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc;
+    ZeroMemory(&dsvDesc, sizeof(dsvDesc));
+    dsvDesc.Format = DXGI_FORMAT_D32_FLOAT;
+    dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+    ThrowIfFailed(m_device->CreateDepthStencilView(     
+        m_depthOnlyBuffer.Get(), &dsvDesc, m_depthOnlyDSV.GetAddressOf()));
+
+    D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
+    ZeroMemory(&srvDesc, sizeof(srvDesc));
+    srvDesc.Format = DXGI_FORMAT_R32_FLOAT;          
+    srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+    srvDesc.Texture2D.MipLevels = 1;
+
+    ThrowIfFailed(m_device->CreateShaderResourceView(
+        m_depthOnlyBuffer.Get(), &srvDesc, m_depthOnlySRV.GetAddressOf()));
 }
 
 } // namespace jRenderer

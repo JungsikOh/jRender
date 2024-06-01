@@ -26,7 +26,7 @@ class Engine : public AppBase {
 
   protected:
     shared_ptr<Model> m_ground;
-    shared_ptr<Model> m_mainObj;
+    shared_ptr<Model> m_mainObj; 
     shared_ptr<Model> m_lightSphere[MAX_LIGHTS];
     shared_ptr<Model> m_skybox;
     shared_ptr<Model> m_cursorSphere;

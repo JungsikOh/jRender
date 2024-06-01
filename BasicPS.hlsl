@@ -5,6 +5,7 @@ Texture2D normalTex : register(t1);
 Texture2D aoTex : register(t2);
 Texture2D metallicTex : register(t3);
 Texture2D emissiveTex : register(t4);
+Texture2D depthOnlyTex : register(t20);
 
 cbuffer MaterialConstants : register(b0)
 {
@@ -22,6 +23,29 @@ cbuffer MaterialConstants : register(b0)
     int useEmissiveMap;
     float dummy;
 };
+
+float LinearizeDepth(float2 texcoord)
+{
+    float near = 0.05;
+    float far = 50.0;
+    
+    float4 posProj;
+    
+    posProj.xy = texcoord * 2.0 - 1.0;
+    posProj.y *= -1;
+    posProj.z = depthOnlyTex.Sample(linearClampSampler, texcoord).r;
+    posProj.w = 1.0;
+
+    // ProjectSpace -> ViewSpace
+    float4 posView = mul(posProj, invProj);
+    posView.xyz /= posView.w;
+    
+    return posView.z;
+    
+    //float z = depth * 2.0 - 1.0; // back to NDC 
+    //depth = (2.0 * near * far) / (far + near - z * (far - near));
+    //return depth /far;
+}
 
 struct PixelShaderOutput
 {
@@ -70,9 +94,9 @@ PixelShaderOutput main(PixelShaderInput input)
     float3 directLighting = float3(0, 0, 0);
     float3 pixelToEye = normalize(eyeWorld - input.posWorld);
     
-    float3 albedoColor = albedoTex.SampleLevel(linearWrapSampler, input.texcoord, lodBias).rgb;
+    float3 albedoColor = useAlbedoMap ? albedoTex.SampleLevel(linearWrapSampler, input.texcoord, lodBias).rgb : albedoFactor;
     
-    float3 ambient = 0.05 * albedoColor;
+    float3 ambient = 0.15 * albedoColor;
     
     [unroll]
     for (int i = 0; i < MAX_LIGHTS; i++)
