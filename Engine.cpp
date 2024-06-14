@@ -160,6 +160,8 @@ bool Engine::Initialize() {
             v.position = positions[i];
             v.normalModel = normals[i];
             v.texcoord = texcoords[i];
+            v.tangentModel = Vector3(1.0f, 0.0f, 0.0f);
+
             skyBoxMesh.vertices.push_back(v);
         }
 
@@ -400,7 +402,7 @@ void Engine::Render() {
                                     commonSRVs.data());
 
     const float clearColor[4] = {0.0f, 0.0f, 0.0f, 1.0f};
-    vector<ID3D11RenderTargetView *> RTVs = {m_backBufferRTV.Get()};
+    vector<ID3D11RenderTargetView *> RTVs = {m_resolvedRTV.Get()};
     AppBase::SetGlobalConsts(m_globalConstsGPU);
 
     // Depth Pass Only
@@ -414,7 +416,7 @@ void Engine::Render() {
         if (i->m_isVisible)
             i->Render(m_context);
     }
-    m_skybox->Render(m_context);
+    // m_skybox->Render(m_context);
 
     // 원래 그리기
     for (size_t i = 0; i < RTVs.size(); i++) {
@@ -433,12 +435,18 @@ void Engine::Render() {
         if (i->m_isVisible)
             i->Render(m_context);
     }
-    AppBase::SetPipelineState(Graphics::skyboxSolidPSO);
-    m_skybox->Render(m_context);
+    // AppBase::SetPipelineState(Graphics::skyboxSolidPSO);
+    // m_skybox->Render(m_context);
 
-
+    // Post-Processing
+    m_context->OMSetRenderTargets(1, m_backBufferRTV.GetAddressOf(), NULL);
     AppBase::SetPipelineState(Graphics::depthOnlyPSO);
-    vector<ID3D11ShaderResourceView *> depthViews = {m_depthOnlySRV.Get()};
+    AppBase::SetGlobalConsts(m_globalConstsGPU);
+    vector<ID3D11ShaderResourceView *> depthViews = {m_resolvedSRV.Get(),
+                                                     m_depthOnlySRV.Get()};
+
+    m_context->PSSetConstantBuffers(2, 1,
+                                    m_postEffectsConstsGPU.GetAddressOf());
     m_context->PSSetShaderResources(20, UINT(depthViews.size()),
                                     depthViews.data());
     m_screenSquare->Render(m_context);
@@ -449,6 +457,25 @@ void Engine::UpdateGUI() {
     if (ImGui::TreeNode("General")) {
         ImGui::Checkbox("Use FPV", &m_camera.m_useFirstPersonView);
         ImGui::Checkbox("Wireframe", &m_drawAsWire);
+        ImGui::TreePop();
+    }
+    ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+    if (ImGui::TreeNode("Depth")) {
+        int flag = 0;
+        flag += ImGui::RadioButton("Render", &m_postEffectsConstsCPU.mode, 1);
+        ImGui::SameLine();
+        flag += ImGui::RadioButton("Depth", &m_postEffectsConstsCPU.mode, 2);
+        flag += ImGui::CheckboxFlags("Edge Detection",
+                                     &m_postEffectsConstsCPU.edge, 1);     
+        flag += ImGui::SliderFloat(
+            "DepthScale", &m_postEffectsConstsCPU.depthScale, 1e-3, 1.0f);
+        flag += ImGui::SliderFloat(
+            "FogStrength", &m_postEffectsConstsCPU.fogStrength, 0.0f, 10.0f);
+        if (flag)
+            D3D11Utils::UpdateBuffer(m_device, m_context,
+                                     m_postEffectsConstsCPU,
+                                     m_postEffectsConstsGPU);
+
         ImGui::TreePop();
     }
 
@@ -481,7 +508,7 @@ void Engine::UpdateGUI() {
     }
 
     ImGui::SetNextItemOpen(true, ImGuiCond_Once);
-    if (ImGui::TreeNode("Light0")) {
+    if (ImGui::TreeNode("Light")) {
         ImGui::SliderFloat3("Position", &m_globalConstsCPU.lights[0].position.x,
                             -1.0f, 1.0f);
         ImGui::SliderFloat("Spot Power", &m_globalConstsCPU.lights[0].spotPower,

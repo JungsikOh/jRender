@@ -155,7 +155,7 @@ void Model::UpdateConstantBuffers(ComPtr<ID3D11Device> &device,
                                  m_materialConstsGPU);
     }
 }
-
+                
 void Model::Render(ComPtr<ID3D11DeviceContext> &context) {
     if (m_isVisible) {
         for (const auto &mesh : m_meshes) {

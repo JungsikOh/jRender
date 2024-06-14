@@ -108,6 +108,7 @@ __declspec(align(256)) struct GlobalConstants {
 // register(b3), PostEffectsPS.hlsl
 __declspec(align(256)) struct PostEffectsConstants {
     int mode = 1; // 1: Rendered image, 2: DepthOnly
+    int edge = 0;
     float depthScale = 1.0f;
     float fogStrength = 0.0f;
 };

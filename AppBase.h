@@ -104,6 +104,10 @@ class AppBase {
       GlobalConstants m_globalConstsCPU;
       ComPtr<ID3D11Buffer> m_globalConstsGPU;
 
+      // Post Processing
+      PostEffectsConstants m_postEffectsConstsCPU;
+      ComPtr<ID3D11Buffer> m_postEffectsConstsGPU;
+
       // Common texutures
       ComPtr<ID3D11ShaderResourceView> m_envSRV;
       ComPtr<ID3D11ShaderResourceView> m_irradianceSRV;

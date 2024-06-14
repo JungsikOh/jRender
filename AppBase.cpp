@@ -417,6 +417,29 @@ void AppBase::CreateBuffers() {
     // ThrowIfFailed(m_device->CreateRenderTargetView(m_floatBuffer.Get(), NULL,
     //                                                m_floatRTV.GetAddressOf()));
 
+    // NO MSAA RTV / SRV for PostPrecessing
+    D3D11_TEXTURE2D_DESC desc;
+    backBuffer->GetDesc(&desc);
+    desc.MipLevels = desc.ArraySize = 1;
+    desc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+    desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+    desc.Usage = D3D11_USAGE_DEFAULT; // It can copy from staging texture.
+    desc.MiscFlags = 0;
+    desc.CPUAccessFlags = 0;
+    desc.SampleDesc.Count = 1;
+    desc.SampleDesc.Quality = 0;
+
+    ThrowIfFailed(m_device->CreateTexture2D(&desc, NULL,
+                                            m_resolvedBuffer.GetAddressOf()));
+    ThrowIfFailed(m_device->CreateRenderTargetView(
+        m_resolvedBuffer.Get(), NULL, m_resolvedRTV.GetAddressOf()));
+    ThrowIfFailed(m_device->CreateShaderResourceView(
+        m_resolvedBuffer.Get(), NULL, m_resolvedSRV.GetAddressOf()));
+
+    // ConstBuffers for PostProcessing
+    D3D11Utils::CreateConstBuffer(m_device, m_postEffectsConstsCPU,
+                                  m_postEffectsConstsGPU);
+
     CreateDepthBuffers();
 }
 
@@ -488,12 +511,12 @@ void AppBase::CreateDepthBuffers() {
     ZeroMemory(&dsvDesc, sizeof(dsvDesc));
     dsvDesc.Format = DXGI_FORMAT_D32_FLOAT;
     dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
-    ThrowIfFailed(m_device->CreateDepthStencilView(     
+    ThrowIfFailed(m_device->CreateDepthStencilView(
         m_depthOnlyBuffer.Get(), &dsvDesc, m_depthOnlyDSV.GetAddressOf()));
 
     D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
     ZeroMemory(&srvDesc, sizeof(srvDesc));
-    srvDesc.Format = DXGI_FORMAT_R32_FLOAT;          
+    srvDesc.Format = DXGI_FORMAT_R32_FLOAT;
     srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
     srvDesc.Texture2D.MipLevels = 1;
 
