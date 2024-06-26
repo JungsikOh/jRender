@@ -7,7 +7,7 @@
 #include <vector>
 
 #include "GeometryGenerator.h"
-#include "GraphicsCommon.h"
+#include "GraphicsCommon.h" 
 
 namespace jRenderer {
 
@@ -15,7 +15,7 @@ using namespace std;
 using namespace DirectX;
 using namespace DirectX::SimpleMath;
 
-Engine::Engine() : AppBase() {}
+Engine::Engine() : AppBase() {} 
 
 bool Engine::Initialize() {
 

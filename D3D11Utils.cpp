@@ -417,4 +417,62 @@ void D3D11Utils::CreateDDSTexture(
         textureResourceView.GetAddressOf(), NULL));
 }
 
+void D3D11Utils::WriteToFile(ComPtr<ID3D11Device> &device,
+                             ComPtr<ID3D11DeviceContext> &context,
+                             ComPtr<ID3D11Texture2D> &textureToWrite,
+                             const std::string filename) {
+
+    D3D11_TEXTURE2D_DESC desc;
+    textureToWrite->GetDesc(&desc);
+    desc.SampleDesc.Count = 1;
+    desc.SampleDesc.Quality = 0;
+    desc.BindFlags = 0;
+    desc.MiscFlags = 0;
+    desc.CPUAccessFlags = D3D11_CPU_ACCESS_READ; // CPU에서 읽기 가능
+    desc.Usage = D3D11_USAGE_STAGING; // GPU에서 CPU로 보낼 데이터를 임시 보관
+
+    ComPtr<ID3D11Texture2D> stagingTexture;
+    if (FAILED(device->CreateTexture2D(&desc, NULL,
+                                       stagingTexture.GetAddressOf()))) {
+        cout << "Failed()" << endl;
+    }
+
+    // 참고: 전체 복사할 때
+    // context->CopyResource(stagingTexture.Get(), pTemp.Get());
+
+    // 일부만 복사할 때 사용
+    D3D11_BOX box;
+    box.left = 0;
+    box.right = desc.Width;
+    box.top = 0;
+    box.bottom = desc.Height;
+    box.front = 0;
+    box.back = 1;
+    context->CopySubresourceRegion(stagingTexture.Get(), 0, 0, 0, 0,
+                                   textureToWrite.Get(), 0, &box);
+
+    // R8G8B8A8 이라고 가정
+    std::vector<uint8_t> pixels(desc.Width * desc.Height * 4);
+
+    D3D11_MAPPED_SUBRESOURCE ms;
+    context->Map(stagingTexture.Get(), NULL, D3D11_MAP_READ, NULL,
+                 &ms); // D3D11_MAP_READ 주의
+
+    // 텍스춰가 작을 경우에는
+    // ms.RowPitch가 width * sizeof(uint8_t) * 4보다 클 수도 있어서
+    // for문으로 가로줄 하나씩 복사
+    uint8_t *pData = (uint8_t *)ms.pData;
+    for (unsigned int h = 0; h < desc.Height; h++) {
+        memcpy(&pixels[h * desc.Width * 4], &pData[h * ms.RowPitch],
+               desc.Width * sizeof(uint8_t) * 4);
+    }
+
+    context->Unmap(stagingTexture.Get(), NULL);
+
+    stbi_write_png(filename.c_str(), desc.Width, desc.Height, 4, pixels.data(),
+                   desc.Width * 4);
+
+    cout << filename << endl;
+}
+
 } // namespace jRenderer

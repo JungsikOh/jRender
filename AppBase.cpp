@@ -173,8 +173,8 @@ LRESULT AppBase::MsgProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
         if (wParam == 'C') { // cÅ° È­¸é Ä¸ÃÄ
             ComPtr<ID3D11Texture2D> backBuffer;
             m_swapChain->GetBuffer(0, IID_PPV_ARGS(backBuffer.GetAddressOf()));
-            /*D3D11Utils::WriteToFile(m_device, m_context, backBuffer,
-                                    "captured.png");*/
+            D3D11Utils::WriteToFile(m_device, m_context, backBuffer,
+                                    "captured.png");
         }
 
         m_keyPressed[wParam] = false;
