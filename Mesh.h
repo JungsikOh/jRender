@@ -8,7 +8,7 @@
 #include <windows.h>
 #include <wrl/client.h> // ComPtr
 
-namespace jRenderer {
+namespace jRenderer { 
 
 using Microsoft::WRL::ComPtr;
 
@@ -39,8 +39,8 @@ struct Mesh {
 
     UINT indexCount = 0; // Number of indiecs = 3 * number of triangles
     UINT vertexCount = 0;
-    UINT stride = 0;
-    UINT offset = 0;
+    UINT strides = 0;
+    UINT offsets = 0;
 };
 
 }

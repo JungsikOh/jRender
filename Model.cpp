@@ -48,8 +48,8 @@ Model::Model(ComPtr<ID3D11Device> &device, ComPtr<ID3D11DeviceContext> &context,
 }
 
 Model::Model(ComPtr<ID3D11Device> &device, ComPtr<ID3D11DeviceContext> &context,
-             const std::vector<MeshData> &meshes) {
-    this->Initialize(device, context, meshes);
+             const std::vector<MeshData> &meshes, int instanceFlag) {
+    this->Initialize(device, context, meshes, instanceFlag);
 }
 
 void Model::Initialize(ComPtr<ID3D11Device> &device,
@@ -64,7 +64,7 @@ void Model::Initialize(ComPtr<ID3D11Device> &device,
 
 void Model::Initialize(ComPtr<ID3D11Device> &device,
                        ComPtr<ID3D11DeviceContext> &context,
-                       const std::vector<MeshData> &meshes) {
+                       const std::vector<MeshData> &meshes, int instanceFlag) {
 
     // ConstantBuffer ¸¸µé±â
     m_meshConstsCPU.world = Matrix();
@@ -73,14 +73,19 @@ void Model::Initialize(ComPtr<ID3D11Device> &device,
     D3D11Utils::CreateConstBuffer(device, m_materialConstsCPU,
                                   m_materialConstsGPU);
 
+    if (instanceFlag) {
+        D3D11Utils::CreateConstBuffer(device, m_instancedConstsCPU,
+                                      m_instancedConstsGPU);
+        m_instancedConstsCPU.useInstancing = 1;
+    }
+
     for (const auto &meshData : meshes) {
         auto newMesh = std::make_shared<Mesh>();
         D3D11Utils::CreateVertexBuffer(device, meshData.vertices,
                                        newMesh->vertexBuffer);
         newMesh->indexCount = UINT(meshData.indices.size());
-        std::cout << newMesh->indexCount << std::endl;
         newMesh->vertexCount = UINT(meshData.vertices.size());
-        newMesh->stride = UINT(sizeof(Vertex));
+        newMesh->strides = UINT(sizeof(Vertex));
         D3D11Utils::CreateIndexBuffer(device, meshData.indices,
                                       newMesh->indexBuffer);
 
@@ -150,14 +155,19 @@ void Model::UpdateConstantBuffers(ComPtr<ID3D11Device> &device,
     if (m_isVisible) {
         D3D11Utils::UpdateBuffer(device, context, m_meshConstsCPU,
                                  m_meshConstsGPU);
-
         D3D11Utils::UpdateBuffer(device, context, m_materialConstsCPU,
                                  m_materialConstsGPU);
     }
+    if (m_instancedConstsCPU.useInstancing) {
+        D3D11Utils::UpdateBuffer(device, context, m_instancedConstsCPU,
+                                 m_instancedConstsGPU);
+    }
 }
-                
+
 void Model::Render(ComPtr<ID3D11DeviceContext> &context) {
     if (m_isVisible) {
+        context->VSSetConstantBuffers(2, 1,
+                                      m_instancedConstsGPU.GetAddressOf());
         for (const auto &mesh : m_meshes) {
             context->VSSetConstantBuffers(
                 0, 1, mesh->vertexConstBuffer.GetAddressOf());
@@ -170,16 +180,26 @@ void Model::Render(ComPtr<ID3D11DeviceContext> &context) {
             vector<ID3D11ShaderResourceView *> resViews = {
                 mesh->albedoSRV.Get(), mesh->normalSRV.Get(), mesh->aoSRV.Get(),
                 mesh->metallicRoughnessSRV.Get(), mesh->emissiveSRV.Get()};
+
             context->PSSetShaderResources(0, UINT(resViews.size()),
                                           resViews.data());
 
-            context->IASetVertexBuffers(0, 1, mesh->vertexBuffer.GetAddressOf(),
-                                        &mesh->stride, &mesh->offset);
+            // vector<ID3D11Buffer *> bufferPointers = {
+            //     mesh->vertexBuffer.Get(), m_instancedConstsGPU.Get()};
+            // UINT strides[2] = {mesh->strides, sizeof(InstancedConsts)};
+            // UINT offsets[2] = {0, 0};
+            // context->IASetVertexBuffers(0, 2, bufferPointers.data(), strides,
+            //                             offsets);
 
+            context->IASetVertexBuffers(0, 1, mesh->vertexBuffer.GetAddressOf(),
+                                        &mesh->strides, &mesh->offsets);
             context->IASetIndexBuffer(mesh->indexBuffer.Get(),
                                       DXGI_FORMAT_R32_UINT, 0);
-            context->DrawIndexed(mesh->indexCount, 0, 0);
-            // std::cout << mesh->indexCount << std::endl;
+            if (!m_instancedConstsCPU.useInstancing)
+                context->DrawIndexed(mesh->indexCount, 0, 0);
+            else if (m_instancedConstsCPU.useInstancing)
+                context->DrawIndexedInstanced(mesh->indexCount, m_instanceCount,
+                                              0, 0, 0);
         }
     }
 }
@@ -188,7 +208,7 @@ void Model::RenderNormals(ComPtr<ID3D11DeviceContext> &context) {
     for (const auto &mesh : m_meshes) {
         context->GSSetConstantBuffers(0, 1, m_meshConstsGPU.GetAddressOf());
         context->IASetVertexBuffers(0, 1, mesh->vertexBuffer.GetAddressOf(),
-                                    &mesh->stride, &mesh->offset);
+                                    &mesh->strides, &mesh->offsets);
         context->Draw(mesh->vertexCount, 0);
     }
 }

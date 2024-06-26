@@ -8,16 +8,25 @@ cbuffer MeshConstants : register(b0)
     matrix worldIT;
     int useHeightMap;
     float heightScale;
-    float dummy;
+    float2 dummy;
 };
 
 cbuffer InstancedConsts : register(b2)
 {
-    float3 instanceMat[MAX_INSTANCE];
+    float3 instancePos[5];
     int useInstancing;
 }
 
-PixelShaderInput main(VertexShaderInput input)
+struct VSInstancedInput
+{
+    float3 posModel : POSITION; //모델 좌표계의 위치 position
+    float3 normalModel : NORMAL0; // 모델 좌표계의 normal    
+    float2 texcoord : TEXCOORD0;
+    float3 tangentModel : TANGENT0;
+    uint instanceID : SV_InstanceID;
+};
+
+PixelShaderInput main(VSInstancedInput input)
 {
     PixelShaderInput output;
     //Inverse: 법선 벡터는 표면에 수직이어야 하므로, 변환 행렬이 스케일링을 포함할 경우, 이 스케일링을 취소해야 합니다. 이를 위해 원래 행렬의 역행렬을 사용합니다.
@@ -31,10 +40,7 @@ PixelShaderInput main(VertexShaderInput input)
     float4 tangentWorld = float4(input.tangentModel, 0.0f);
     tangentWorld = mul(tangentWorld, world);
     
-    if (useInstancing)
-    {
-        input.posModel += instanceMat[input.instanceID];
-    }
+    input.posModel += instancePos[input.instanceID % 5];
     float4 pos = float4(input.posModel, 1.0f);
     pos = mul(pos, world);
     

@@ -31,228 +31,162 @@ bool Engine::Initialize() {
     {
         MeshData screenBox = GeometryGenerator::MakeSquare();
         m_screenSquare =
-            make_shared<Model>(m_device, m_context, vector{screenBox});
+            make_shared<Model>(m_device, m_context, vector{screenBox}, 0);
     }
 
     // Skybox object
     {
-        MeshData skyBoxMesh;
-        vector<Vector3> positions;
-        vector<Vector3> colors;
-        vector<Vector3> normals;
-        vector<Vector2> texcoords;
-        float scale = 25.0f;
-
-        //// 윗면
-        positions.push_back(Vector3(-1.0f, 1.0f, -1.0f) * scale);
-        positions.push_back(Vector3(-1.0f, 1.0f, 1.0f) * scale);
-        positions.push_back(Vector3(1.0f, 1.0f, 1.0f) * scale);
-        positions.push_back(Vector3(1.0f, 1.0f, -1.0f) * scale);
-        colors.push_back(Vector3(1.0f, 0.0f, 0.0f));
-        colors.push_back(Vector3(1.0f, 0.0f, 0.0f));
-        colors.push_back(Vector3(1.0f, 0.0f, 0.0f));
-        colors.push_back(Vector3(1.0f, 0.0f, 0.0f));
-        normals.push_back(Vector3(0.0f, 1.0f, 0.0f));
-        normals.push_back(Vector3(0.0f, 1.0f, 0.0f));
-        normals.push_back(Vector3(0.0f, 1.0f, 0.0f));
-        normals.push_back(Vector3(0.0f, 1.0f, 0.0f));
-        texcoords.push_back(Vector2(0.0f, 0.0f));
-        texcoords.push_back(Vector2(1.0f, 0.0f));
-        texcoords.push_back(Vector2(1.0f, 1.0f));
-        texcoords.push_back(Vector2(0.0f, 1.0f));
-
-        // 아랫면
-        positions.push_back(Vector3(-1.0f, -1.0f, -1.0f) * scale);
-        positions.push_back(Vector3(1.0f, -1.0f, -1.0f) * scale);
-        positions.push_back(Vector3(1.0f, -1.0f, 1.0f) * scale);
-        positions.push_back(Vector3(-1.0f, -1.0f, 1.0f) * scale);
-        colors.push_back(Vector3(1.0f, 0.0f, 0.0f));
-        colors.push_back(Vector3(1.0f, 0.0f, 0.0f));
-        colors.push_back(Vector3(1.0f, 0.0f, 0.0f));
-        colors.push_back(Vector3(1.0f, 0.0f, 0.0f));
-        normals.push_back(Vector3(0.0f, -1.0f, 0.0f));
-        normals.push_back(Vector3(0.0f, -1.0f, 0.0f));
-        normals.push_back(Vector3(0.0f, -1.0f, 0.0f));
-        normals.push_back(Vector3(0.0f, -1.0f, 0.0f));
-        texcoords.push_back(Vector2(0.0f, 0.0f));
-        texcoords.push_back(Vector2(1.0f, 0.0f));
-        texcoords.push_back(Vector2(1.0f, 1.0f));
-        texcoords.push_back(Vector2(0.0f, 1.0f));
-
-        // 앞면
-        positions.push_back(Vector3(-1.0f, -1.0f, -1.0f) * scale);
-        positions.push_back(Vector3(-1.0f, 1.0f, -1.0f) * scale);
-        positions.push_back(Vector3(1.0f, 1.0f, -1.0f) * scale);
-        positions.push_back(Vector3(1.0f, -1.0f, -1.0f) * scale);
-        colors.push_back(Vector3(0.0f, 0.0f, 1.0f));
-        colors.push_back(Vector3(0.0f, 0.0f, 1.0f));
-        colors.push_back(Vector3(0.0f, 0.0f, 1.0f));
-        colors.push_back(Vector3(0.0f, 0.0f, 1.0f));
-        normals.push_back(Vector3(0.0f, 0.0f, -1.0f));
-        normals.push_back(Vector3(0.0f, 0.0f, -1.0f));
-        normals.push_back(Vector3(0.0f, 0.0f, -1.0f));
-        normals.push_back(Vector3(0.0f, 0.0f, -1.0f));
-        texcoords.push_back(Vector2(0.0f, 0.0f));
-        texcoords.push_back(Vector2(1.0f, 0.0f));
-        texcoords.push_back(Vector2(1.0f, 1.0f));
-        texcoords.push_back(Vector2(0.0f, 1.0f));
-
-        // 뒷면
-        positions.push_back(Vector3(-1.0f, -1.0f, 1.0f) * scale);
-        positions.push_back(Vector3(1.0f, -1.0f, 1.0f) * scale);
-        positions.push_back(Vector3(1.0f, 1.0f, 1.0f) * scale);
-        positions.push_back(Vector3(-1.0f, 1.0f, 1.0f) * scale);
-        colors.push_back(Vector3(1.0f, 0.0f, 0.0f));
-        colors.push_back(Vector3(1.0f, 0.0f, 0.0f));
-        colors.push_back(Vector3(1.0f, 0.0f, 0.0f));
-        colors.push_back(Vector3(1.0f, 0.0f, 0.0f));
-        normals.push_back(Vector3(0.0f, 0.0f, 1.0f));
-        normals.push_back(Vector3(0.0f, 0.0f, 1.0f));
-        normals.push_back(Vector3(0.0f, 0.0f, 1.0f));
-        normals.push_back(Vector3(0.0f, 0.0f, 1.0f));
-        texcoords.push_back(Vector2(0.0f, 0.0f));
-        texcoords.push_back(Vector2(1.0f, 0.0f));
-        texcoords.push_back(Vector2(1.0f, 1.0f));
-        texcoords.push_back(Vector2(0.0f, 1.0f));
-
-        // 왼면
-        positions.push_back(Vector3(-1.0f, -1.0f, 1.0f) * scale);
-        positions.push_back(Vector3(-1.0f, 1.0f, 1.0f) * scale);
-        positions.push_back(Vector3(-1.0f, 1.0f, -1.0f) * scale);
-        positions.push_back(Vector3(-1.0f, -1.0f, -1.0f) * scale);
-        colors.push_back(Vector3(1.0f, 1.0f, 0.0f));
-        colors.push_back(Vector3(1.0f, 1.0f, 0.0f));
-        colors.push_back(Vector3(1.0f, 1.0f, 0.0f));
-        colors.push_back(Vector3(1.0f, 1.0f, 0.0f));
-        normals.push_back(Vector3(-1.0f, 0.0f, 0.0f));
-        normals.push_back(Vector3(-1.0f, 0.0f, 0.0f));
-        normals.push_back(Vector3(-1.0f, 0.0f, 0.0f));
-        normals.push_back(Vector3(-1.0f, 0.0f, 0.0f));
-        texcoords.push_back(Vector2(0.0f, 0.0f));
-        texcoords.push_back(Vector2(1.0f, 0.0f));
-        texcoords.push_back(Vector2(1.0f, 1.0f));
-        texcoords.push_back(Vector2(0.0f, 1.0f));
-
-        // 오른면
-        positions.push_back(Vector3(1.0f, -1.0f, -1.0f) * scale);
-        positions.push_back(Vector3(1.0f, 1.0f, -1.0f) * scale);
-        positions.push_back(Vector3(1.0f, 1.0f, 1.0f) * scale);
-        positions.push_back(Vector3(1.0f, -1.0f, 1.0f) * scale);
-        // positions.push_back(Vector3(1.0f, -1.0f, 1.0f) * scale);
-        // positions.push_back(Vector3(1.0f, -1.0f, -1.0f) * scale);
-        // positions.push_back(Vector3(1.0f, 1.0f, -1.0f) * scale);
-        // positions.push_back(Vector3(1.0f, 1.0f, 1.0f) * scale);
-        colors.push_back(Vector3(1.0f, 0.0f, 1.0f));
-        colors.push_back(Vector3(1.0f, 0.0f, 1.0f));
-        colors.push_back(Vector3(1.0f, 0.0f, 1.0f));
-        colors.push_back(Vector3(1.0f, 0.0f, 1.0f));
-        normals.push_back(Vector3(1.0f, 0.0f, 0.0f));
-        normals.push_back(Vector3(1.0f, 0.0f, 0.0f));
-        normals.push_back(Vector3(1.0f, 0.0f, 0.0f));
-        normals.push_back(Vector3(1.0f, 0.0f, 0.0f));
-        texcoords.push_back(Vector2(0.0f, 0.0f));
-        texcoords.push_back(Vector2(1.0f, 0.0f));
-        texcoords.push_back(Vector2(1.0f, 1.0f));
-        texcoords.push_back(Vector2(0.0f, 1.0f));
-
-        for (UINT i = 0; i < positions.size(); i++) {
-            Vertex v;
-            v.position = positions[i];
-            v.normalModel = normals[i];
-            v.texcoord = texcoords[i];
-            v.tangentModel = Vector3(1.0f, 0.0f, 0.0f);
-
-            skyBoxMesh.vertices.push_back(v);
-        }
-
-        skyBoxMesh.indices = {
-            0,  1,  2,  0,  2,
-            3, // 윗면
-            4,  5,  6,  4,  6,
-            7, // 아랫면
-            8,  9,  10, 8,  10,
-            11, // 앞면
-            12, 13, 14, 12, 14,
-            15, // 뒷면
-            16, 17, 18, 16, 18,
-            19, // 왼쪽면
-            20, 21, 22, 20, 22,
-            23 // 오른면
-        };
+        MeshData skyBoxMesh = GeometryGenerator::MakeBox(25.0f);
         std::reverse(skyBoxMesh.indices.begin(), skyBoxMesh.indices.end());
-        m_skybox = make_shared<Model>(m_device, m_context, vector{skyBoxMesh});
+        m_skybox =
+            make_shared<Model>(m_device, m_context, vector{skyBoxMesh}, 0);
+
+        m_skybox->m_materialConstsCPU.albedoFactor = Vector3(1.0f);
+        m_skybox->m_materialConstsCPU.roughnessFactor = 0.3f;
+        m_skybox->m_materialConstsCPU.metallicFactor = 0.8f;
+        m_skybox->UpdateWorldRow(
+            Matrix::CreateTranslation(Vector3(0.0f, 0.0f, 0.0f)));
     }
 
     // 바닥 오브젝트
     {
-        MeshData ground = GeometryGenerator::MakeSquare(10.0f);
-        m_ground = make_shared<Model>(m_device, m_context, vector{ground});
-        m_ground->UpdateWorldRow(
-            Matrix::CreateRotationX(1.0f / 2.0f * 3.141592f) *
-            Matrix::CreateTranslation(Vector3(0.0f, 0.0f, 0.0f)));
-        m_ground->m_materialConstsCPU.albedoFactor = Vector3(0.8f, 0.3f, 0.2f);
+        MeshData ground = GeometryGenerator::MakeBox(2.0f, true);
+        // ground.albedoTextureFilename = "Assets/ground.jpg";
+        ground.albedoTextureFilename =
+            "Assets/Bricks075A/Bricks075A_1K-JPG_Color.jpg";
+        ground.normalTextureFilename =
+            "Assets/Bricks075A/Bricks075A_1K-JPG_NormalDX.jpg";
+        ground.heightTextureFilename =
+            "Assets/Bricks075A/Bricks075A_1K-JPG_Displacement.jpg";
 
-        m_basicList.push_back(m_ground);
+        std::reverse(ground.indices.begin(), ground.indices.end());
+        m_ground[0] =
+            make_shared<Model>(m_device, m_context, vector{ground}, 0);
+        m_ground[0]->UpdateWorldRow(
+            // Matrix::CreateRotationX(1.0f / 2.0f * 3.141592f) *
+            Matrix::CreateTranslation(Vector3(0.0f, 1.0f, 0.0f)));
+        m_ground[0]->m_materialConstsCPU.albedoFactor =
+            Vector3(0.4f, 0.5f, 0.2f);
+
+        m_ground[0]->m_castShadow = false;
+        m_ground[0]->m_materialConstsCPU.useNormalMap = true;
+        m_ground[0]->m_materialConstsCPU.invertNormalMapY = false;
+
+        m_basicList.push_back(m_ground[0]);
+
+        // m_ground[1] = make_shared<Model>(m_device, m_context,
+        // vector{ground}); m_ground[1]->UpdateWorldRow(
+        //     Matrix::CreateTranslation(Vector3(0.0f, 0.0f, 5.0f)));
+        // m_ground[1]->m_materialConstsCPU.albedoFactor =
+        //     Vector3(0.1f, 0.1f, 0.3f);
+        // m_ground[1]->m_castShadow = false;
+
+        // m_basicList.push_back(m_ground[1]);
+
+        // m_ground[2] = make_shared<Model>(m_device, m_context,
+        // vector{ground}); m_ground[2]->UpdateWorldRow(
+        //     Matrix::CreateRotationY(XMConvertToRadians(90.0f)) *
+        //     Matrix::CreateTranslation(Vector3(5.0f, 0.0f, 0.0f)));
+        // m_ground[2]->m_materialConstsCPU.albedoFactor =
+        //     Vector3(0.1f, 0.1f, 0.3f);
+        // m_ground[2]->m_castShadow = false;
+
+        // m_basicList.push_back(m_ground[2]);
     }
 
     // Main Object
     {
-        auto meshes = Model::ReadFromFile("Assets/DamagedHelmet/",
-                                          "DamagedHelmet.gltf", false);
+         auto meshes = Model::ReadFromFile("Assets/DamagedHelmet/",
+                                           "DamagedHelmet.gltf", false);
 
-        Vector3 center(0.0f, 0.5f, 0.0f);
-        m_mainObj = make_shared<Model>(m_device, m_context, meshes);
-        m_mainObj->m_materialConstsCPU.invertNormalMapY = true; // GLTF는 true로
-        m_mainObj->m_materialConstsCPU.albedoFactor = Vector3(1.0f);
+        // Vector3 center(0.0f, 0.5f, 0.0f);
+        // m_mainObj = make_shared<Model>(m_device, m_context, meshes);
+        /*auto meshes = GeometryGenerator::MakeBox(0.2f);*/
+
+        Vector3 center(0.0f, 0.5f, 1.0f);
+        m_mainObj = make_shared<Model>(m_device, m_context, vector{meshes}, 1);
+
+        m_mainObj->m_materialConstsCPU.invertNormalMapY =
+            true; // GLTF는 true로
+        m_mainObj->m_materialConstsCPU.albedoFactor = Vector3(0.9f, 0.2f, 0.2f);
         m_mainObj->m_materialConstsCPU.roughnessFactor = 0.3f;
         m_mainObj->m_materialConstsCPU.metallicFactor = 0.8f;
         m_mainObj->UpdateWorldRow(Matrix::CreateTranslation(center));
+        m_mainObj->m_castShadow = true;
+
+        for (int i = 0; i < 2; i++) { 
+            m_mainObj->m_instancedConstsCPU.instanceMat[i] =
+                Vector3(-1.0f * 0.8f * (float)i, 1.0f * 0.8f * (float)i,
+                        1.0f * 0.5f * (float)i); 
+        }
 
         // 물체 감지를 위한 Bounding Sphere 생성
         m_mainBoundingSphere = BoundingSphere(center, 0.5f);
+        m_mainObj->UpdateConstantBuffers(m_device, m_context);
 
         m_basicList.push_back(m_mainObj);
+    }
+
+    // 구 obj
+    {
+        auto meshes = GeometryGenerator::MakeSphere(0.2f, 20, 20);
+
+        Vector3 center(0.5f, 0.5f, 0.0f);
+        m_boxObj = make_shared<Model>(m_device, m_context, vector{meshes}, 0);
+        m_boxObj->m_materialConstsCPU.albedoFactor = Vector3(0.8f);
+        m_boxObj->UpdateWorldRow(Matrix::CreateTranslation(center));
+        m_boxObj->m_castShadow = true;
+
+        m_boxObj->UpdateConstantBuffers(m_device, m_context);
+
+        m_basicList.push_back(m_boxObj);
     }
 
     // light setting
     {
         // 조명 0은 고정
         m_globalConstsCPU.lights[0].radiance = Vector3(5.0f);
-        m_globalConstsCPU.lights[0].position = Vector3(0.0f, 1.2f, 0.0f);
+        m_globalConstsCPU.lights[0].position = Vector3(0.0f, 2.0f, 0.0f);
         m_globalConstsCPU.lights[0].direction = Vector3(0.0f, -1.0f, 0.0f);
-        m_globalConstsCPU.lights[0].spotPower = 3.0f;
+        m_globalConstsCPU.lights[0].spotPower = 1.0f;
         m_globalConstsCPU.lights[0].radius = 0.02f;
+        m_globalConstsCPU.lights[0].lightColor = Vector3(1.0f, 1.0f, 1.0f);
         m_globalConstsCPU.lights[0].type =
             LIGHT_SPOT | LIGHT_SHADOW; // Point with shadow
 
         //// 조명 1의 위치와 방향은 Update()에서 설정
         m_globalConstsCPU.lights[1].radiance = Vector3(5.0f);
-        m_globalConstsCPU.lights[1].position = Vector3(1.0f, 2.2f, 0.0f);
-        m_globalConstsCPU.lights[1].spotPower = 3.0f;
+        m_globalConstsCPU.lights[1].spotPower = 1.0f;
         m_globalConstsCPU.lights[1].fallOffEnd = 20.0f;
-        m_globalConstsCPU.lights[1].radius = 0.02f;
-        m_globalConstsCPU.lights[1].lightColor = Vector3(1.0f, 1.0f, 1.0f);
+        m_globalConstsCPU.lights[1].position = Vector3(-0.5f, 1.2f, 0.0f);
+        m_globalConstsCPU.lights[1].direction = Vector3(0.5f, -1.5f, 0.0f);
+        m_globalConstsCPU.lights[1].lightColor = Vector3(0.5f, 1.0f, 1.0f);
         m_globalConstsCPU.lights[1].type =
             LIGHT_SPOT | LIGHT_SHADOW; // Point with shadow
 
         // 조명 2는 꺼놓음
-        m_globalConstsCPU.lights[2].type = LIGHT_OFF;
+        m_globalConstsCPU.lights[2].radiance = Vector3(5.0f);
+        m_globalConstsCPU.lights[2].position = Vector3(-1.3f, -0.4f, -1.0f);
+        m_globalConstsCPU.lights[2].spotPower = 1.0f;
+        m_globalConstsCPU.lights[2].radius = 0.02f;
+        m_globalConstsCPU.lights[2].lightColor = Vector3(1.0f, 1.0f, 1.0f);
+        m_globalConstsCPU.lights[2].type =
+            LIGHT_POINT | LIGHT_SHADOW; // Point with shadow
     }
-
     // 조명 그리기
     {
         for (int i = 0; i < MAX_LIGHTS; i++) {
             MeshData sphere = GeometryGenerator::MakeSphere(1.0f, 20, 20);
             m_lightSphere[i] =
-                make_shared<Model>(m_device, m_context, vector{sphere});
+                make_shared<Model>(m_device, m_context, vector{sphere}, 0);
             m_lightSphere[i]->UpdateWorldRow(Matrix::CreateTranslation(
                 m_globalConstsCPU.lights[i].position));
             m_lightSphere[i]->m_materialConstsCPU.albedoFactor =
-                Vector3(0.0f, 0.0f, 1.0f);
+                Vector3(1.0f, 1.0f, 1.0f);
             m_lightSphere[i]->m_materialConstsCPU.emissionFactor =
                 Vector3(1.0f, 0.0f, 0.0f);
             m_lightSphere[i]->m_castShadow = false;
-
+             
             if (m_globalConstsCPU.lights[i].type == LIGHT_OFF)
                 m_lightSphere[i]->m_isVisible = false;
 
@@ -273,6 +207,90 @@ void Engine::Update(float dt) {
 
     // Update Global ConstantBuffer
     AppBase::UpdateGlobalConstants(eyeWorld, viewRow, projRow);
+
+    // 조명 시점 그리기
+    for (int i = 0; i < MAX_LIGHTS; i++) {
+        const auto &light = m_globalConstsCPU.lights[i];
+        if (light.type & LIGHT_SHADOW) {
+
+            Vector3 up = Vector3(0.0f, 1.0f, 0.0f);
+            // 만약 빛의 방향과 upDir의 dot 연산이 -1에 가깝다면, 그것은 둘의
+            // 사이각이 180도에 가깝다는 이야기로, upDir의 방향을
+            // 수정해줘야한다.
+            if (abs(up.Dot(light.direction) + 1.0f) < 1e-5)
+                up = Vector3(1.0f, 0.0f, 0.0f);
+
+            // https://learn.microsoft.com/ko-kr/windows/win32/api/directxmath/nf-directxmath-xmmatrixperspectivefovlh
+            Matrix lightProjRow = XMMatrixPerspectiveFovLH(
+                XMConvertToRadians(120.0f), 1.0f, 0.01f, 25.0f);
+            // Matrix lightProjRow = XMMatrixOrthographicOffCenterLH(
+            //         -10.0f, 10.0f, -10.0f, 10.0f, 1.0f, 100.0f);
+            //  lightProjRow =
+            //  XMMatrixOrthographicLH(20.0f, 20.0f, 1.0f, 7.5f);
+
+            // https://learn.microsoft.com/ko-kr/windows/win32/api/directxmath/nf-directxmath-xmmatrixlookatlh
+            Vector3 targetVec = (light.position + light.direction);
+            targetVec.Normalize();
+            Matrix lightViewRow =
+                XMMatrixLookAtLH(light.position, targetVec, up);
+
+            m_shadowGlobalConstsCPU[i].eyeWorld = light.position;
+            m_shadowGlobalConstsCPU[i].view = lightViewRow.Transpose();
+            m_shadowGlobalConstsCPU[i].proj = lightProjRow.Transpose();
+            m_shadowGlobalConstsCPU[i].invProj =
+                lightProjRow.Invert().Transpose();
+            m_shadowGlobalConstsCPU[i].viewProj =
+                (lightViewRow * lightProjRow).Transpose();
+
+            if (light.type & LIGHT_POINT) {
+                Matrix pointLightProjRow = XMMatrixPerspectiveFovLH(
+                    XMConvertToRadians(90.0f), 1.0f, 1.0f, 50.0f);
+                Vector3 directions[6] = {
+                    {1.0f, 0.0f, 0.0f}, {-1.0f, 0.0f, 0.0f},
+                    {0.0f, 1.0f, 0.0f}, {0.0f, -1.0f, 0.0f},
+                    {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f, -1.0f}};
+                Vector3 upDir[6] = {{0.0f, 1.0f, 0.0f},  {0.0f, 1.0f, 0.0f},
+                                    {0.0f, 0.0f, -1.0f}, {0.0f, 0.0f, 1.0f},
+                                    {0.0f, 1.0f, 1.0f},  {0.0f, 1.0f, 0.0f}};
+
+                for (int face = 0; face < 6; ++face) {
+                    lightViewRow = XMMatrixLookAtLH(
+                        light.position, light.position + directions[face],
+                        upDir[face]);
+                    m_pointLightTransformCPU[i].shadowViewProj[face] =
+                        (lightViewRow * pointLightProjRow).Transpose();
+                }
+                D3D11Utils::UpdateBuffer(m_device, m_context,
+                                         m_pointLightTransformCPU[i],
+                                         m_pointLightTransformGPU[i]);
+            }
+            // for (int x = 0; x < 4; x++) // loop 3 times for three lines
+            //{
+            //     for (int y = 0; y < 4;
+            //          y++) // loop for the three elements on the line
+            //     {
+            //         Matrix temp =
+            //         m_pointLightTransformCPU[2].shadowViewProj[1]; cout <<
+            //         temp.m[x][y] << " "; // display the
+            //                                      // current element
+            //                                      // out of
+            //                                      // the array
+            //     }
+            //     cout << endl; // when the inner loop is done, go to a new
+            //     line
+            // }
+
+            D3D11Utils::UpdateBuffer(m_device, m_context,
+                                     m_shadowGlobalConstsCPU[i],
+                                     m_shadowGlobalConstsGPU[i]);
+
+            // 그림자를 실제로 렌더링할 때 필요
+            m_globalConstsCPU.lights[i].viewProj =
+                m_shadowGlobalConstsCPU[i].viewProj;
+            m_globalConstsCPU.lights[i].invProj =
+                m_shadowGlobalConstsCPU[i].invProj;
+        }
+    }
 
     // 조명의 위치 반영
     for (int i = 0; i < MAX_LIGHTS; i++) {
@@ -403,6 +421,8 @@ void Engine::Render() {
 
     const float clearColor[4] = {0.0f, 0.0f, 0.0f, 1.0f};
     vector<ID3D11RenderTargetView *> RTVs = {m_resolvedRTV.Get()};
+
+    AppBase::SetPipelineState(Graphics::depthOnlyPSO);
     AppBase::SetGlobalConsts(m_globalConstsGPU);
 
     // Depth Pass Only
@@ -410,44 +430,79 @@ void Engine::Render() {
                                      1.0f, 0);
     m_context->OMSetRenderTargets(0, NULL, m_depthOnlyDSV.Get());
 
-    AppBase::SetPipelineState(Graphics::defaultSolidPSO);
-
     for (auto &i : m_basicList) {
-        if (i->m_isVisible)
-            i->Render(m_context);
+        i->Render(m_context);
     }
     // m_skybox->Render(m_context);
 
+    // Shadow Mapping
+    AppBase::SetShadowViewport();
+    for (int i = 0; i < MAX_LIGHTS; i++) {
+        if (m_globalConstsCPU.lights[i].type & LIGHT_SPOT) {
+            AppBase::SetPipelineState(Graphics::depthOnlyPSO);
+            AppBase::SetGlobalConsts(m_shadowGlobalConstsGPU[i]);
+            m_context->ClearDepthStencilView(m_shadowOnlyDSVs[i].Get(),
+                                             D3D11_CLEAR_DEPTH, 1.0f, 0);
+            m_context->OMSetRenderTargets(0, NULL, m_shadowOnlyDSVs[i].Get());
+
+            for (auto &frag : m_basicList) {
+                if (frag->m_isVisible && frag->m_castShadow)
+                    frag->Render(m_context);
+            }
+        }
+    }
+    AppBase::SetPipelineState(Graphics::shadowCubeMapPSO);
+    AppBase::SetGlobalConsts(m_shadowGlobalConstsGPU[2]);
+    m_context->GSSetConstantBuffers(2, 1,
+                                    m_pointLightTransformGPU[2].GetAddressOf());
+    m_context->ClearDepthStencilView(m_shadowCubeDSVs.Get(), D3D11_CLEAR_DEPTH,
+                                     1.0f, 0);
+    m_context->OMSetRenderTargets(0, NULL, m_shadowCubeDSVs.Get());
+    for (auto &frag : m_basicList) {
+        if (frag->m_isVisible && frag->m_castShadow)
+            frag->Render(m_context);
+    }
+
     // 원래 그리기
+    AppBase::SetMainViewport();
+
+    vector<ID3D11ShaderResourceView *> shadowSRVs;
+    for (int i = 0; i < MAX_LIGHTS; i++) {
+        shadowSRVs.push_back(m_shadowOnlySRVs[i].Get());
+    }
+    shadowSRVs.push_back(m_shadowCubeSRVs.Get());
+
     for (size_t i = 0; i < RTVs.size(); i++) {
         m_context->ClearRenderTargetView(RTVs[i], clearColor);
     }
+
+    AppBase::SetPipelineState(Graphics::defaultSolidPSO);
+    AppBase::SetGlobalConsts(m_globalConstsGPU);
+
     m_context->ClearDepthStencilView(m_depthStencilView.Get(),
                                      D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
                                      1.0f, 0);
     m_context->OMSetRenderTargets(UINT(RTVs.size()), RTVs.data(),
                                   m_depthStencilView.Get());
-
-    AppBase::SetPipelineState(Graphics::defaultSolidPSO);
-    AppBase::SetGlobalConsts(m_globalConstsGPU);
+    m_context->PSSetShaderResources(15, shadowSRVs.size(), shadowSRVs.data());
 
     for (auto &i : m_basicList) {
-        if (i->m_isVisible)
-            i->Render(m_context);
+        i->Render(m_context);
     }
-    // AppBase::SetPipelineState(Graphics::skyboxSolidPSO);
-    // m_skybox->Render(m_context);
+    AppBase::SetPipelineState(Graphics::skyboxSolidPSO);
+    AppBase::SetGlobalConsts(m_globalConstsGPU);
+    m_skybox->Render(m_context);
 
     // Post-Processing
     m_context->OMSetRenderTargets(1, m_backBufferRTV.GetAddressOf(), NULL);
-    AppBase::SetPipelineState(Graphics::depthOnlyPSO);
+    AppBase::SetPipelineState(Graphics::postEffectsPSO);
     AppBase::SetGlobalConsts(m_globalConstsGPU);
     vector<ID3D11ShaderResourceView *> depthViews = {m_resolvedSRV.Get(),
                                                      m_depthOnlySRV.Get()};
 
     m_context->PSSetConstantBuffers(2, 1,
                                     m_postEffectsConstsGPU.GetAddressOf());
-    m_context->PSSetShaderResources(20, UINT(depthViews.size()),
+    m_context->PSSetShaderResources(25, UINT(depthViews.size()),
                                     depthViews.data());
     m_screenSquare->Render(m_context);
 }
@@ -460,21 +515,35 @@ void Engine::UpdateGUI() {
         ImGui::TreePop();
     }
     ImGui::SetNextItemOpen(true, ImGuiCond_Once);
-    if (ImGui::TreeNode("Depth")) {
+    if (ImGui::TreeNode("Post-Processing")) {
         int flag = 0;
         flag += ImGui::RadioButton("Render", &m_postEffectsConstsCPU.mode, 1);
         ImGui::SameLine();
         flag += ImGui::RadioButton("Depth", &m_postEffectsConstsCPU.mode, 2);
         flag += ImGui::CheckboxFlags("Edge Detection",
-                                     &m_postEffectsConstsCPU.edge, 1);     
+                                     &m_postEffectsConstsCPU.edge, 1);
         flag += ImGui::SliderFloat(
             "DepthScale", &m_postEffectsConstsCPU.depthScale, 1e-3, 1.0f);
+        flag += ImGui::SliderFloat(
+            "GammaScale", &m_postEffectsConstsCPU.gammaScale, 1e-3, 10.0f);
         flag += ImGui::SliderFloat(
             "FogStrength", &m_postEffectsConstsCPU.fogStrength, 0.0f, 10.0f);
         if (flag)
             D3D11Utils::UpdateBuffer(m_device, m_context,
                                      m_postEffectsConstsCPU,
                                      m_postEffectsConstsGPU);
+
+        ImGui::TreePop();
+    }
+    ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+    if (ImGui::TreeNode("BOX")) {
+        int flag = 0;
+        flag += ImGui::CheckboxFlags(
+            "Normal Map", &m_ground[0]->m_materialConstsCPU.useNormalMap, 1);
+
+        if (flag) {
+            m_ground[0]->UpdateConstantBuffers(m_device, m_context);
+        }
 
         ImGui::TreePop();
     }
@@ -508,13 +577,42 @@ void Engine::UpdateGUI() {
     }
 
     ImGui::SetNextItemOpen(true, ImGuiCond_Once);
-    if (ImGui::TreeNode("Light")) {
+    if (ImGui::TreeNode("Light0")) {
+
         ImGui::SliderFloat3("Position", &m_globalConstsCPU.lights[0].position.x,
-                            -1.0f, 1.0f);
+                            -10.0f, 10.0f);
         ImGui::SliderFloat("Spot Power", &m_globalConstsCPU.lights[0].spotPower,
                            0.0f, 32.0f);
         ImGui::ColorEdit3("Color", &m_globalConstsCPU.lights[0].lightColor.x,
                           0);
+
+        ImGui::TreePop();
+    }
+    ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+    if (ImGui::TreeNode("Light1")) {
+        ImGui::SliderFloat3("Position", &m_globalConstsCPU.lights[1].position.x,
+                            -10.0f, 10.0f);
+        ImGui::SliderFloat("Spot Power", &m_globalConstsCPU.lights[1].spotPower,
+                           0.0f, 32.0f);
+        ImGui::ColorEdit3("Color", &m_globalConstsCPU.lights[1].lightColor.x,
+                          0);
+
+        ImGui::TreePop();
+    }
+    ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+    if (ImGui::TreeNode("Light2")) {
+        int flag = 0;
+        flag += ImGui::SliderFloat3(
+            "Position", &m_globalConstsCPU.lights[2].position.x, -10.0f, 10.0f);
+        flag += ImGui::SliderFloat(
+            "Spot Power", &m_globalConstsCPU.lights[2].spotPower, 0.0f, 32.0f);
+        flag += ImGui::ColorEdit3("Color",
+                                  &m_globalConstsCPU.lights[2].lightColor.x, 0);
+
+        if (flag) {
+            D3D11Utils::UpdateBuffer(m_device, m_context, m_globalConstsCPU,
+                                     m_globalConstsGPU);
+        }
 
         ImGui::TreePop();
     }

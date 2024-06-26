@@ -1,7 +1,7 @@
 #pragma once
 
 #include <algorithm>
-#include <directxtk/SimpleMath.h>
+#include <directxtk/SimpleMath.h> 
 #include <iostream>
 #include <memory>
 
@@ -25,8 +25,11 @@ class Engine : public AppBase {
     void UpdateLights(float dt);
 
   protected:
-    shared_ptr<Model> m_ground;
+    shared_ptr<Model> m_ground[3];
+
+
     shared_ptr<Model> m_mainObj; 
+    shared_ptr<Model> m_boxObj;
     shared_ptr<Model> m_lightSphere[MAX_LIGHTS];
     shared_ptr<Model> m_skybox;
     shared_ptr<Model> m_cursorSphere;

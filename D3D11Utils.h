@@ -8,6 +8,7 @@
 #include <vector>
 #include <windows.h>
 #include <wrl/client.h> // Comptr
+#include <directxtk/SimpleMath.h>
 
 namespace jRenderer {
 
@@ -15,6 +16,7 @@ using Microsoft::WRL::ComPtr;
 using std::shared_ptr;
 using std::vector;
 using std::wstring;
+using namespace DirectX::SimpleMath;
 
 inline void ThrowIfFailed(HRESULT hr) {
     if (FAILED(hr)) {
@@ -71,6 +73,33 @@ class D3D11Utils {
 
         ThrowIfFailed(device->CreateBuffer(&bufferDesc, &vertexBufferData,
                                            vertexBuffer.GetAddressOf()));
+    }
+
+    static void CreateInstanceBuffer(ComPtr<ID3D11Device> &device,
+                                     ComPtr<ID3D11Buffer> &instanceBuffer) {
+        vector<Vector3> instances;
+        instances.push_back(Vector3(-0.3f, 0.0f, 0.0f));
+        instances.push_back(Vector3(0.5f, 0.5f, 0.5f));
+        instances.push_back(Vector3(-0.1f, -0.2f, 0.3f));
+        instances.push_back(Vector3(0.4f, 0.7f, -1.0f));
+
+        D3D11_BUFFER_DESC bufferDesc;
+        ZeroMemory(&bufferDesc, sizeof(bufferDesc));
+        bufferDesc.Usage = D3D11_USAGE_DEFAULT;
+        bufferDesc.ByteWidth = UINT(sizeof(Vector3) * instances.size());
+        bufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+        bufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+        bufferDesc.MiscFlags = 0;
+        bufferDesc.StructureByteStride = 0;
+          
+        // initialize in MS Sample
+        D3D11_SUBRESOURCE_DATA instanceBufferData = {0};
+        instanceBufferData.pSysMem = instances.data();
+        instanceBufferData.SysMemPitch = 0;
+        instanceBufferData.SysMemSlicePitch = 0;
+
+        ThrowIfFailed(device->CreateBuffer(&bufferDesc, &instanceBufferData,
+                                           instanceBuffer.GetAddressOf()));
     }
 
     // desc -> subresource_data -> create

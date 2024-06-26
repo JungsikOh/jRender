@@ -50,22 +50,34 @@
     <FxCompile Include="BasicPS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="SkyboxVS.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
     <FxCompile Include="SkyboxPS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="DepthOnlyVS.hlsl">
+    <FxCompile Include="PostEffectsVS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
     <FxCompile Include="DepthOnlyPS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="PostProcessingVS.hlsl">
+    <FxCompile Include="PostEffectsPS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="PostProcessingPS.hlsl">
+    <FxCompile Include="DepthOnlyVS.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="ShadowCubeMapVS.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="ShadowCubeMapGS.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="SkyboxVS.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="ShadowCubeMapPS.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="InstancedVS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
   </ItemGroup>

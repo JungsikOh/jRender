@@ -104,6 +104,26 @@ class AppBase {
       GlobalConstants m_globalConstsCPU;
       ComPtr<ID3D11Buffer> m_globalConstsGPU;
 
+      // Shadow Mapping
+      int m_shadowWidth = 2048;
+      int m_shadowHeight = 2048;
+
+      GlobalConstants m_shadowGlobalConstsCPU[MAX_LIGHTS];
+      ComPtr<ID3D11Buffer> m_shadowGlobalConstsGPU[MAX_LIGHTS];
+
+      // Shadow Buffer
+      ComPtr<ID3D11Texture2D> m_shadowOnlyBuffers[MAX_LIGHTS]; // No MSAA
+      ComPtr<ID3D11DepthStencilView> m_shadowOnlyDSVs[MAX_LIGHTS];
+      ComPtr<ID3D11ShaderResourceView> m_shadowOnlySRVs[MAX_LIGHTS];
+
+      // Shadow CubeMap
+      ComPtr<ID3D11Texture2D> m_shadowCubeBuffers; // No MSAA
+      ComPtr<ID3D11DepthStencilView> m_shadowCubeDSVs;
+      ComPtr<ID3D11ShaderResourceView> m_shadowCubeSRVs;
+
+      ShadowLightTransform m_pointLightTransformCPU[MAX_LIGHTS];
+      ComPtr<ID3D11Buffer> m_pointLightTransformGPU[MAX_LIGHTS];
+
       // Post Processing
       PostEffectsConstants m_postEffectsConstsCPU;
       ComPtr<ID3D11Buffer> m_postEffectsConstsGPU;

@@ -15,10 +15,19 @@ cbuffer InstancedConsts : register(b2)
     int useInstancing;
 }
 
-float4 main(VertexShaderInput input) : SV_POSITION
+struct VSToGS
 {
-    if(useInstancing)
+    float4 posWorld : SV_Position;
+    float2 texcoord : TEXCOORD0;
+    uint instanceID : SV_InstanceID;
+};
+
+VSToGS main(VertexShaderInput input)
+{
+    VSToGS output;
+    if (useInstancing)
         input.posModel += instanceMat[input.instanceID];
-    float4 pos = mul(float4(input.posModel, 1.0f), world);
-    return mul(pos, viewProj);
+    output.posWorld = mul(float4(input.posModel, 1.0), world);
+    output.texcoord = input.texcoord;
+    return output;
 }

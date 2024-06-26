@@ -300,6 +300,17 @@ bool AppBase::InitDirect3D() {
     D3D11Utils::CreateConstBuffer(m_device, m_globalConstsCPU,
                                   m_globalConstsGPU);
 
+    for (int i = 0; i < MAX_LIGHTS; i++) {
+        D3D11Utils::CreateConstBuffer(m_device, m_shadowGlobalConstsCPU[i],
+                                      m_shadowGlobalConstsGPU[i]);
+        D3D11Utils::CreateConstBuffer(m_device, m_pointLightTransformCPU[i],
+                                      m_pointLightTransformGPU[i]);
+    }
+
+    // ConstBuffers for PostProcessing
+    D3D11Utils::CreateConstBuffer(m_device, m_postEffectsConstsCPU,
+                                  m_postEffectsConstsGPU);
+
     return true;
 }
 
@@ -354,11 +365,26 @@ void AppBase::SetMainViewport() {
     m_context->RSSetViewports(1, &m_screenViewport);
 }
 
+void AppBase::SetShadowViewport() {
+
+    // Set the viewport
+    D3D11_VIEWPORT shadowViewport;
+    ZeroMemory(&shadowViewport, sizeof(D3D11_VIEWPORT));
+    shadowViewport.TopLeftX = 0;
+    shadowViewport.TopLeftY = 0;
+    shadowViewport.Width = float(m_shadowWidth);
+    shadowViewport.Height = float(m_shadowHeight);
+    shadowViewport.MinDepth = 0.0f;
+    shadowViewport.MaxDepth = 1.0f;
+
+    m_context->RSSetViewports(1, &shadowViewport);
+}
+
 void AppBase::SetGlobalConsts(ComPtr<ID3D11Buffer> &globalConstsGPU) {
     // 쉐이더와 일관성 유지 register(b1)
     m_context->VSSetConstantBuffers(1, 1, globalConstsGPU.GetAddressOf());
     m_context->PSSetConstantBuffers(1, 1, globalConstsGPU.GetAddressOf());
-    // m_context->GSSetConstantBuffers(1, 1, globalConstsGPU.GetAddressOf());
+    m_context->GSSetConstantBuffers(1, 1, globalConstsGPU.GetAddressOf());
 }
 
 void AppBase::SetPipelineState(const GraphicsPSO &pso) {
@@ -366,7 +392,7 @@ void AppBase::SetPipelineState(const GraphicsPSO &pso) {
     m_context->PSSetShader(pso.m_pixelShader.Get(), 0, 0);
     // m_context->HSSetShader(pso.m_hullShader.Get(), 0, 0);
     // m_context->DSSetShader(pso.m_domainShader.Get(), 0, 0);
-    // m_context->GSSetShader(pso.m_geometryShader.Get(), 0, 0);
+    m_context->GSSetShader(pso.m_geometryShader.Get(), 0, 0);
     m_context->IASetInputLayout(pso.m_inputLayout.Get());
     m_context->RSSetState(pso.m_rasterizerState.Get());
     // m_context->OMSetBlendState(pso.m_blendState.Get(), pso.m_blendFactor,
@@ -420,7 +446,7 @@ void AppBase::CreateBuffers() {
     // NO MSAA RTV / SRV for PostPrecessing
     D3D11_TEXTURE2D_DESC desc;
     backBuffer->GetDesc(&desc);
-    desc.MipLevels = desc.ArraySize = 1;
+    desc.MipLevels = desc.ArraySize = 1;   
     desc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
     desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
     desc.Usage = D3D11_USAGE_DEFAULT; // It can copy from staging texture.
@@ -435,10 +461,6 @@ void AppBase::CreateBuffers() {
         m_resolvedBuffer.Get(), NULL, m_resolvedRTV.GetAddressOf()));
     ThrowIfFailed(m_device->CreateShaderResourceView(
         m_resolvedBuffer.Get(), NULL, m_resolvedSRV.GetAddressOf()));
-
-    // ConstBuffers for PostProcessing
-    D3D11Utils::CreateConstBuffer(m_device, m_postEffectsConstsCPU,
-                                  m_postEffectsConstsGPU);
 
     CreateDepthBuffers();
 }
@@ -507,12 +529,41 @@ void AppBase::CreateDepthBuffers() {
     ThrowIfFailed(m_device->CreateTexture2D(&desc, NULL,
                                             m_depthOnlyBuffer.GetAddressOf()));
 
+    // Shadow 전용
+    desc.Width = m_shadowWidth;
+    desc.Height = m_shadowHeight;
+    for (int i = 0; i < MAX_LIGHTS; i++) {
+        ThrowIfFailed(m_device->CreateTexture2D(
+            &desc, NULL, m_shadowOnlyBuffers[i].GetAddressOf()));
+    }
+    // shadowCubeMap
+    desc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
+    desc.ArraySize = 6;
+    ThrowIfFailed(m_device->CreateTexture2D(
+        &desc, NULL, m_shadowCubeBuffers.GetAddressOf()));
+
     D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc;
     ZeroMemory(&dsvDesc, sizeof(dsvDesc));
     dsvDesc.Format = DXGI_FORMAT_D32_FLOAT;
     dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
     ThrowIfFailed(m_device->CreateDepthStencilView(
         m_depthOnlyBuffer.Get(), &dsvDesc, m_depthOnlyDSV.GetAddressOf()));
+
+    // Shadow 전용
+    for (int i = 0; i < MAX_LIGHTS; i++) {
+        ThrowIfFailed(m_device->CreateDepthStencilView(
+            m_shadowOnlyBuffers[i].Get(), &dsvDesc,
+            m_shadowOnlyDSVs[i].GetAddressOf()));
+    }
+
+    dsvDesc.Format = DXGI_FORMAT_D32_FLOAT;
+    dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DARRAY;
+    dsvDesc.Texture2DArray.ArraySize = 6;
+    dsvDesc.Texture2DArray.FirstArraySlice = 0;
+    dsvDesc.Texture2DArray.MipSlice = 0;
+    dsvDesc.Flags = 0;
+    ThrowIfFailed(m_device->CreateDepthStencilView(
+        m_shadowCubeBuffers.Get(), &dsvDesc, m_shadowCubeDSVs.GetAddressOf()));
 
     D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
     ZeroMemory(&srvDesc, sizeof(srvDesc));
@@ -522,6 +573,22 @@ void AppBase::CreateDepthBuffers() {
 
     ThrowIfFailed(m_device->CreateShaderResourceView(
         m_depthOnlyBuffer.Get(), &srvDesc, m_depthOnlySRV.GetAddressOf()));
+
+    // Shadow 전용
+    for (int i = 0; i < MAX_LIGHTS; i++) {
+        ThrowIfFailed(m_device->CreateShaderResourceView(
+            m_shadowOnlyBuffers[i].Get(), &srvDesc,
+            m_shadowOnlySRVs[i].GetAddressOf()));
+    }
+
+    // shadowCube 전용
+    ZeroMemory(&srvDesc, sizeof(srvDesc));
+    srvDesc.Format = DXGI_FORMAT_R32_FLOAT;
+    srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
+    srvDesc.TextureCube.MostDetailedMip = 0;
+    srvDesc.TextureCube.MipLevels = 1;
+    ThrowIfFailed(m_device->CreateShaderResourceView(
+        m_shadowCubeBuffers.Get(), &srvDesc, m_shadowCubeSRVs.GetAddressOf()));
 }
 
 } // namespace jRenderer

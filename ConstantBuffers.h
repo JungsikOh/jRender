@@ -4,6 +4,7 @@
 
 // It should be same as "Common.hlsli"
 #define MAX_LIGHTS 3
+#define MAX_INSTANCE 2
 #define LIGHT_OFF 0x00
 #define LIGHT_DIRECTIONAL 0x01
 #define LIGHT_POINT 0x02 
@@ -69,12 +70,14 @@ __declspec(align(256)) struct MaterialConstants {
 struct Light {
     Vector3 radiance = Vector3(5.0f); // strength
     float fallOffStart = 0.0f;
-    Vector3 direction = Vector3(0.0f, 0.0f, 1.0f);
+    Vector3 direction = Vector3(0.0f, -1.0f, 0.0f);
     float fallOffEnd = 20.0f;
-    Vector3 position = Vector3(0.0f, 0.0f, -2.0f); 
-    float spotPower = 3.0f;
+    Vector3 position = Vector3(0.0f, 0.0f, -2.0f);
+    float spotPower = 6.0f;
     Vector3 lightColor = Vector3(0.3f);
     float dummy1;
+
+
 
     // Light type bitmasking
     // ex) LIGHT SPOT | LIGHT_SHADOW
@@ -105,11 +108,23 @@ __declspec(align(256)) struct GlobalConstants {
     Light lights[MAX_LIGHTS];
 };
 
+// register(b2)
+__declspec(align(256)) struct InstancedConsts {
+    Vector3 instanceMat[MAX_INSTANCE];
+    int useInstancing = 0;
+};
+
+// 
+struct ShadowLightTransform {
+    Matrix shadowViewProj[6];
+};
+
 // register(b3), PostEffectsPS.hlsl
 __declspec(align(256)) struct PostEffectsConstants {
     int mode = 1; // 1: Rendered image, 2: DepthOnly
     int edge = 0;
     float depthScale = 1.0f;
+    float gammaScale = 1.0f;
     float fogStrength = 0.0f;
 };
 

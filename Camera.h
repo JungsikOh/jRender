@@ -37,11 +37,11 @@ class Camera {
     // https://en.wikipedia.org/wiki/Aircraft_principal_axes
     float m_yaw = 0.441786f, m_pitch = -0.449422f;
 
-    float m_speed = 0.5f; // 움직이는 속도
+    float m_speed = 5.0f; // 움직이는 속도
 
     // 프로젝션 옵션도 카메라 클래스로 이동
     float m_projFovAngleY = 90.0f;
-    float m_nearZ = 0.005f;
+    float m_nearZ = 0.05f;
     float m_farZ = 50.0f;
     float m_aspect = 16.0f / 9.0f;
     bool m_usePerspectiveProjection = true;
