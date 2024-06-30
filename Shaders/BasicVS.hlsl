@@ -10,7 +10,7 @@ cbuffer MeshConstants : register(b0)
     float heightScale;
     float dummy;
 };
-
+ 
 cbuffer InstancedConsts : register(b2)
 {
     float3 instanceMat[MAX_INSTANCE];

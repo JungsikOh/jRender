@@ -59,6 +59,13 @@ MeshData GeometryGenerator::MakeBox(const float scale, bool invertNormal) {
     vector<Vector3> colors;
     vector<Vector3> normals;
     vector<Vector2> texcoords; // ÅØ½ºÃç ÁÂÇ¥
+    vector<Vector3> tangents;
+
+    Vector3 edge1;
+    Vector3 edge2;
+    Vector2 deltaTex1;
+    Vector2 deltaTex2;
+    Vector3 tangent;
     float flag = 1.0f;
 
     if (invertNormal)
@@ -81,6 +88,15 @@ MeshData GeometryGenerator::MakeBox(const float scale, bool invertNormal) {
     texcoords.push_back(Vector2(1.0f, 1.0f));
     texcoords.push_back(Vector2(0.0f, 1.0f));
 
+    edge1 = Vector3(-1.0f, 1.0f, 1.0f) - Vector3(1.0f, 1.0f, -1.0f);
+    edge2 = Vector3(1.0f, 1.0f, 1.0f) - Vector3(1.0f, 1.0f, -1.0f);
+    deltaTex1 = Vector2(1.0f, 0.0f) - Vector2(0.0f, 0.0f);
+    deltaTex2 = Vector2(1.0f, 1.0f) - Vector2(0.0f, 0.0f);
+    tangent = D3D11Utils::GetTangent(edge1, edge2, deltaTex1, deltaTex2);
+    for (int i = 0; i < 4; i++) {
+        tangents.push_back(tangent);
+    }
+
     // ¾Æ·§¸é
     positions.push_back(Vector3(-1.0f, -1.0f, -1.0f) * scale);
     positions.push_back(Vector3(1.0f, -1.0f, -1.0f) * scale);
@@ -98,6 +114,15 @@ MeshData GeometryGenerator::MakeBox(const float scale, bool invertNormal) {
     texcoords.push_back(Vector2(1.0f, 0.0f));
     texcoords.push_back(Vector2(1.0f, 1.0f));
     texcoords.push_back(Vector2(0.0f, 1.0f));
+
+    edge1 = Vector3(1.0f, -1.0f, -1.0f) - Vector3(-1.0f, -1.0f, -1.0f);
+    edge2 = Vector3(1.0f, -1.0f, 1.0f) - Vector3(-1.0f, -1.0f, -1.0f);
+    deltaTex1 = Vector2(1.0f, 0.0f) - Vector2(0.0f, 0.0f);
+    deltaTex2 = Vector2(1.0f, 1.0f) - Vector2(0.0f, 0.0f);
+    tangent = D3D11Utils::GetTangent(edge1, edge2, deltaTex1, deltaTex2);
+    for (int i = 0; i < 4; i++) {
+        tangents.push_back(tangent);
+    }
 
     // ¾Õ¸é
     positions.push_back(Vector3(-1.0f, -1.0f, -1.0f) * scale);
@@ -117,6 +142,15 @@ MeshData GeometryGenerator::MakeBox(const float scale, bool invertNormal) {
     texcoords.push_back(Vector2(1.0f, 1.0f));
     texcoords.push_back(Vector2(0.0f, 1.0f));
 
+    edge1 = Vector3(-1.0f, 1.0f, -1.0f) - Vector3(-1.0f, -1.0f, -1.0f);
+    edge2 = Vector3(1.0f, 1.0f, -1.0f) - Vector3(-1.0f, -1.0f, -1.0f);
+    deltaTex1 = Vector2(1.0f, 0.0f) - Vector2(0.0f, 0.0f);
+    deltaTex2 = Vector2(1.0f, 1.0f) - Vector2(0.0f, 0.0f);
+    tangent = D3D11Utils::GetTangent(edge1, edge2, deltaTex1, deltaTex2);
+    for (int i = 0; i < 4; i++) {
+        tangents.push_back(tangent);
+    }
+
     // µÞ¸é
     positions.push_back(Vector3(-1.0f, -1.0f, 1.0f) * scale);
     positions.push_back(Vector3(1.0f, -1.0f, 1.0f) * scale);
@@ -134,6 +168,15 @@ MeshData GeometryGenerator::MakeBox(const float scale, bool invertNormal) {
     texcoords.push_back(Vector2(1.0f, 0.0f));
     texcoords.push_back(Vector2(1.0f, 1.0f));
     texcoords.push_back(Vector2(0.0f, 1.0f));
+
+    edge1 = Vector3(1.0f, -1.0f, 1.0f) - Vector3(-1.0f, -1.0f, 1.0f);
+    edge2 = Vector3(1.0f, 1.0f, 1.0f) - Vector3(-1.0f, -1.0f, 1.0f);
+    deltaTex1 = Vector2(1.0f, 0.0f) - Vector2(0.0f, 0.0f);
+    deltaTex2 = Vector2(1.0f, 1.0f) - Vector2(0.0f, 0.0f);
+    tangent = D3D11Utils::GetTangent(edge1, edge2, deltaTex1, deltaTex2);
+    for (int i = 0; i < 4; i++) {
+        tangents.push_back(tangent);
+    }
 
     // ¿ÞÂÊ
     positions.push_back(Vector3(-1.0f, -1.0f, 1.0f) * scale);
@@ -153,6 +196,15 @@ MeshData GeometryGenerator::MakeBox(const float scale, bool invertNormal) {
     texcoords.push_back(Vector2(1.0f, 1.0f));
     texcoords.push_back(Vector2(0.0f, 1.0f));
 
+    edge1 = Vector3(-1.0f, 1.0f, 1.0f) - Vector3(-1.0f, -1.0f, 1.0f);
+    edge2 = Vector3(-1.0f, 1.0f, -1.0f) - Vector3(-1.0f, -1.0f, 1.0f);
+    deltaTex1 = Vector2(1.0f, 0.0f) - Vector2(0.0f, 0.0f);
+    deltaTex2 = Vector2(1.0f, 1.0f) - Vector2(0.0f, 0.0f);
+    tangent = D3D11Utils::GetTangent(edge1, edge2, deltaTex1, deltaTex2);
+    for (int i = 0; i < 4; i++) {
+        tangents.push_back(tangent);
+    }
+
     // ¿À¸¥ÂÊ
     positions.push_back(Vector3(1.0f, -1.0f, 1.0f) * scale);
     positions.push_back(Vector3(1.0f, -1.0f, -1.0f) * scale);
@@ -171,12 +223,21 @@ MeshData GeometryGenerator::MakeBox(const float scale, bool invertNormal) {
     texcoords.push_back(Vector2(1.0f, 1.0f));
     texcoords.push_back(Vector2(0.0f, 1.0f));
 
+    edge1 = Vector3(1.0f, -1.0f, -1.0f) - Vector3(1.0f, -1.0f, 1.0f);
+    edge2 = Vector3(1.0f, 1.0f, -1.0f) - Vector3(1.0f, -1.0f, 1.0f);
+    deltaTex1 = Vector2(1.0f, 0.0f) - Vector2(0.0f, 0.0f);
+    deltaTex2 = Vector2(1.0f, 1.0f) - Vector2(0.0f, 0.0f);
+    tangent = D3D11Utils::GetTangent(edge1, edge2, deltaTex1, deltaTex2);
+    for (int i = 0; i < 4; i++) {
+        tangents.push_back(tangent);
+    }
+
     for (UINT i = 0; i < positions.size(); i++) {
         Vertex v;
         v.position = positions[i];
         v.normalModel = normals[i];
         v.texcoord = texcoords[i];
-        v.tangentModel = Vector3(1.0f, 1.0f, 1.0f);
+        v.tangentModel = tangents[i];
 
         meshData.vertices.push_back(v);
     }

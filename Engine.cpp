@@ -7,7 +7,7 @@
 #include <vector>
 
 #include "GeometryGenerator.h"
-#include "GraphicsCommon.h" 
+#include "GraphicsCommon.h"
 
 namespace jRenderer {
 
@@ -15,7 +15,7 @@ using namespace std;
 using namespace DirectX;
 using namespace DirectX::SimpleMath;
 
-Engine::Engine() : AppBase() {} 
+Engine::Engine() : AppBase() {}
 
 bool Engine::Initialize() {
 
@@ -23,9 +23,9 @@ bool Engine::Initialize() {
         return false;
 
     // SkyBox texture Init
-    AppBase::InitCubemaps(L"Assets/SkyBox/", L"normalSkyEnvHDR.dds",
-                          L"normalSkySpecularHDR.dds",
-                          L"normalSkyDiffuseHDR.dds", L"normalSkyBrdf.dds");
+    AppBase::InitCubemaps(L"Assets/CubeMap/", L"blueroomEnvHDR.dds",
+                          L"blueroomSpecularHDR.dds", L"blueroomDiffuseHDR.dds",
+                          L"blueroomBrdf.dds");
 
     // 후처리용 박스
     {
@@ -56,8 +56,6 @@ bool Engine::Initialize() {
             "Assets/Bricks075A/Bricks075A_1K-JPG_Color.jpg";
         ground.normalTextureFilename =
             "Assets/Bricks075A/Bricks075A_1K-JPG_NormalDX.jpg";
-        ground.heightTextureFilename =
-            "Assets/Bricks075A/Bricks075A_1K-JPG_Displacement.jpg";
 
         std::reverse(ground.indices.begin(), ground.indices.end());
         m_ground[0] =
@@ -74,14 +72,16 @@ bool Engine::Initialize() {
 
         m_basicList.push_back(m_ground[0]);
 
-        // m_ground[1] = make_shared<Model>(m_device, m_context,
-        // vector{ground}); m_ground[1]->UpdateWorldRow(
-        //     Matrix::CreateTranslation(Vector3(0.0f, 0.0f, 5.0f)));
-        // m_ground[1]->m_materialConstsCPU.albedoFactor =
-        //     Vector3(0.1f, 0.1f, 0.3f);
-        // m_ground[1]->m_castShadow = false;
+        std::reverse(ground.indices.begin(), ground.indices.end());
+        m_ground[1] =
+            make_shared<Model>(m_device, m_context, vector{ground}, 0);
+        m_ground[1]->UpdateWorldRow(
+            Matrix::CreateTranslation(Vector3(3.0f, 0.0f, 5.0f)));
+        m_ground[1]->m_materialConstsCPU.albedoFactor =
+            Vector3(0.1f, 0.1f, 0.3f);
+        m_ground[1]->m_castShadow = true;
 
-        // m_basicList.push_back(m_ground[1]);
+        m_basicList.push_back(m_ground[1]);
 
         // m_ground[2] = make_shared<Model>(m_device, m_context,
         // vector{ground}); m_ground[2]->UpdateWorldRow(
@@ -96,8 +96,8 @@ bool Engine::Initialize() {
 
     // Main Object
     {
-         auto meshes = Model::ReadFromFile("Assets/DamagedHelmet/",
-                                           "DamagedHelmet.gltf", false);
+        auto meshes = Model::ReadFromFile("Assets/DamagedHelmet/",
+                                          "DamagedHelmet.gltf", false);
 
         // Vector3 center(0.0f, 0.5f, 0.0f);
         // m_mainObj = make_shared<Model>(m_device, m_context, meshes);
@@ -106,18 +106,17 @@ bool Engine::Initialize() {
         Vector3 center(0.0f, 0.5f, 1.0f);
         m_mainObj = make_shared<Model>(m_device, m_context, vector{meshes}, 1);
 
-        m_mainObj->m_materialConstsCPU.invertNormalMapY =
-            true; // GLTF는 true로
+        m_mainObj->m_materialConstsCPU.invertNormalMapY = true; // GLTF는 true로
         m_mainObj->m_materialConstsCPU.albedoFactor = Vector3(0.9f, 0.2f, 0.2f);
         m_mainObj->m_materialConstsCPU.roughnessFactor = 0.3f;
         m_mainObj->m_materialConstsCPU.metallicFactor = 0.8f;
         m_mainObj->UpdateWorldRow(Matrix::CreateTranslation(center));
         m_mainObj->m_castShadow = true;
 
-        for (int i = 0; i < 2; i++) { 
+        for (int i = 0; i < 2; i++) {
             m_mainObj->m_instancedConstsCPU.instanceMat[i] =
                 Vector3(-1.0f * 0.8f * (float)i, 1.0f * 0.8f * (float)i,
-                        1.0f * 0.5f * (float)i); 
+                        1.0f * 0.5f * (float)i);
         }
 
         // 물체 감지를 위한 Bounding Sphere 생성
@@ -186,7 +185,7 @@ bool Engine::Initialize() {
             m_lightSphere[i]->m_materialConstsCPU.emissionFactor =
                 Vector3(1.0f, 0.0f, 0.0f);
             m_lightSphere[i]->m_castShadow = false;
-             
+
             if (m_globalConstsCPU.lights[i].type == LIGHT_OFF)
                 m_lightSphere[i]->m_isVisible = false;
 
@@ -411,99 +410,111 @@ void Engine::Render() {
                              Graphics::sampleStates.data());
     m_context->PSSetSamplers(0, UINT(Graphics::sampleStates.size()),
                              Graphics::sampleStates.data());
+    if (false) {
+        // for cubemap texture
+        vector<ID3D11ShaderResourceView *> commonSRVs = {
+            m_specularSRV.Get(), m_irradianceSRV.Get(), m_envSRV.Get(),
+            m_brdfSRV.Get()};
+        m_context->PSSetShaderResources(10, UINT(commonSRVs.size()),
+                                        commonSRVs.data());
 
-    // for cubemap texture
-    vector<ID3D11ShaderResourceView *> commonSRVs = {
-        m_specularSRV.Get(), m_irradianceSRV.Get(), m_envSRV.Get(),
-        m_brdfSRV.Get()};
-    m_context->PSSetShaderResources(10, UINT(commonSRVs.size()),
-                                    commonSRVs.data());
+        const float clearColor[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+        vector<ID3D11RenderTargetView *> RTVs = {m_resolvedRTV.Get()};
 
-    const float clearColor[4] = {0.0f, 0.0f, 0.0f, 1.0f};
-    vector<ID3D11RenderTargetView *> RTVs = {m_resolvedRTV.Get()};
+        AppBase::SetPipelineState(Graphics::depthOnlyPSO);
+        AppBase::SetGlobalConsts(m_globalConstsGPU);
 
-    AppBase::SetPipelineState(Graphics::depthOnlyPSO);
-    AppBase::SetGlobalConsts(m_globalConstsGPU);
+        // Depth Pass Only
+        m_context->ClearDepthStencilView(m_depthOnlyDSV.Get(),
+                                         D3D11_CLEAR_DEPTH, 1.0f, 0);
+        m_context->OMSetRenderTargets(0, NULL, m_depthOnlyDSV.Get());
 
-    // Depth Pass Only
-    m_context->ClearDepthStencilView(m_depthOnlyDSV.Get(), D3D11_CLEAR_DEPTH,
-                                     1.0f, 0);
-    m_context->OMSetRenderTargets(0, NULL, m_depthOnlyDSV.Get());
-
-    for (auto &i : m_basicList) {
-        i->Render(m_context);
-    }
-    // m_skybox->Render(m_context);
-
-    // Shadow Mapping
-    AppBase::SetShadowViewport();
-    for (int i = 0; i < MAX_LIGHTS; i++) {
-        if (m_globalConstsCPU.lights[i].type & LIGHT_SPOT) {
-            AppBase::SetPipelineState(Graphics::depthOnlyPSO);
-            AppBase::SetGlobalConsts(m_shadowGlobalConstsGPU[i]);
-            m_context->ClearDepthStencilView(m_shadowOnlyDSVs[i].Get(),
-                                             D3D11_CLEAR_DEPTH, 1.0f, 0);
-            m_context->OMSetRenderTargets(0, NULL, m_shadowOnlyDSVs[i].Get());
-
-            for (auto &frag : m_basicList) {
-                if (frag->m_isVisible && frag->m_castShadow)
-                    frag->Render(m_context);
-            }
+        for (auto &i : m_basicList) {
+            i->Render(m_context);
         }
-    }
-    AppBase::SetPipelineState(Graphics::shadowCubeMapPSO);
-    AppBase::SetGlobalConsts(m_shadowGlobalConstsGPU[2]);
-    m_context->GSSetConstantBuffers(2, 1,
-                                    m_pointLightTransformGPU[2].GetAddressOf());
-    m_context->ClearDepthStencilView(m_shadowCubeDSVs.Get(), D3D11_CLEAR_DEPTH,
-                                     1.0f, 0);
-    m_context->OMSetRenderTargets(0, NULL, m_shadowCubeDSVs.Get());
-    for (auto &frag : m_basicList) {
-        if (frag->m_isVisible && frag->m_castShadow)
-            frag->Render(m_context);
+        // m_skybox->Render(m_context);
+
+        // Shadow Mapping
+        AppBase::SetShadowViewport();
+        for (int i = 0; i < MAX_LIGHTS; i++) {
+            if (m_globalConstsCPU.lights[i].type & LIGHT_SPOT) {
+                AppBase::SetPipelineState(Graphics::depthOnlyPSO);
+                AppBase::SetGlobalConsts(m_shadowGlobalConstsGPU[i]);
+                m_context->ClearDepthStencilView(m_shadowOnlyDSVs[i].Get(),
+                                                 D3D11_CLEAR_DEPTH, 1.0f, 0);
+                m_context->OMSetRenderTargets(0, NULL,
+                                              m_shadowOnlyDSVs[i].Get());
+
+                for (auto &frag : m_basicList) {
+                    if (frag->m_isVisible && frag->m_castShadow)
+                        frag->Render(m_context);
+                }
+            }
+        } 
+        AppBase::SetPipelineState(Graphics::shadowCubeMapPSO);
+        AppBase::SetGlobalConsts(m_shadowGlobalConstsGPU[2]);
+        m_context->GSSetConstantBuffers(
+            2, 1, m_pointLightTransformGPU[2].GetAddressOf());
+        m_context->ClearDepthStencilView(m_shadowCubeDSVs.Get(),
+                                         D3D11_CLEAR_DEPTH, 1.0f, 0);
+        m_context->OMSetRenderTargets(0, NULL, m_shadowCubeDSVs.Get());
+        for (auto &frag : m_basicList) {
+            if (frag->m_isVisible && frag->m_castShadow)
+                frag->Render(m_context);
+        }
+
+        // 원래 그리기
+        AppBase::SetMainViewport();
+
+        vector<ID3D11ShaderResourceView *> shadowSRVs;
+        for (int i = 0; i < MAX_LIGHTS; i++) {
+            shadowSRVs.push_back(m_shadowOnlySRVs[i].Get());
+        }
+        shadowSRVs.push_back(m_shadowCubeSRVs.Get());
+
+        for (size_t i = 0; i < RTVs.size(); i++) {
+            m_context->ClearRenderTargetView(RTVs[i], clearColor);
+        }
+
+        AppBase::SetPipelineState(Graphics::defaultSolidPSO);
+        AppBase::SetGlobalConsts(m_globalConstsGPU);
+
+        m_context->ClearDepthStencilView(
+            m_depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
+            1.0f, 0);
+        m_context->OMSetRenderTargets(UINT(RTVs.size()), RTVs.data(),
+                                      m_depthStencilView.Get());
+        m_context->PSSetShaderResources(15, shadowSRVs.size(),
+                                        shadowSRVs.data());
+
+        for (auto &i : m_basicList) {
+            i->Render(m_context);
+        }
+        AppBase::SetPipelineState(Graphics::skyboxSolidPSO);
+        AppBase::SetGlobalConsts(m_globalConstsGPU);
+        m_skybox->Render(m_context);
     }
 
-    // 원래 그리기
-    AppBase::SetMainViewport();
-
-    vector<ID3D11ShaderResourceView *> shadowSRVs;
-    for (int i = 0; i < MAX_LIGHTS; i++) {
-        shadowSRVs.push_back(m_shadowOnlySRVs[i].Get());
-    }
-    shadowSRVs.push_back(m_shadowCubeSRVs.Get());
-
-    for (size_t i = 0; i < RTVs.size(); i++) {
-        m_context->ClearRenderTargetView(RTVs[i], clearColor);
-    }
-
-    AppBase::SetPipelineState(Graphics::defaultSolidPSO);
+    AppBase::SetPipelineState(Graphics::gBufferPSO);
     AppBase::SetGlobalConsts(m_globalConstsGPU);
-
-    m_context->ClearDepthStencilView(m_depthStencilView.Get(),
-                                     D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
-                                     1.0f, 0);
-    m_context->OMSetRenderTargets(UINT(RTVs.size()), RTVs.data(),
-                                  m_depthStencilView.Get());
-    m_context->PSSetShaderResources(15, shadowSRVs.size(), shadowSRVs.data());
-
-    for (auto &i : m_basicList) {
+    m_gBuffer.PreRender(m_context);
+    for (auto &i : m_basicList) { 
         i->Render(m_context);
-    }
-    AppBase::SetPipelineState(Graphics::skyboxSolidPSO);
-    AppBase::SetGlobalConsts(m_globalConstsGPU);
-    m_skybox->Render(m_context);
+    }  
 
-    // Post-Processing
+    // Post-Processing  
     m_context->OMSetRenderTargets(1, m_backBufferRTV.GetAddressOf(), NULL);
     AppBase::SetPipelineState(Graphics::postEffectsPSO);
     AppBase::SetGlobalConsts(m_globalConstsGPU);
-    vector<ID3D11ShaderResourceView *> depthViews = {m_resolvedSRV.Get(),
-                                                     m_depthOnlySRV.Get()};
+    /*vector<ID3D11ShaderResourceView *> SRVs = {m_resolvedSRV.Get(),
+                                                     m_depthOnlySRV.Get()};*/
+    vector<ID3D11ShaderResourceView *> SRVs = {m_gBuffer.GetColorView(),
+                                               m_gBuffer.GetNormalView(),
+                                               m_gBuffer.GetDepthView()};
 
-    m_context->PSSetConstantBuffers(2, 1,
-                                    m_postEffectsConstsGPU.GetAddressOf());
-    m_context->PSSetShaderResources(25, UINT(depthViews.size()),
-                                    depthViews.data());
+    //m_context->PSSetConstantBuffers(2, 1,
+    //                                m_postEffectsConstsGPU.GetAddressOf()); 
+    m_context->PSSetShaderResources(5, UINT(SRVs.size()), SRVs.data());
     m_screenSquare->Render(m_context);
 }
 
@@ -522,12 +533,17 @@ void Engine::UpdateGUI() {
         flag += ImGui::RadioButton("Depth", &m_postEffectsConstsCPU.mode, 2);
         flag += ImGui::CheckboxFlags("Edge Detection",
                                      &m_postEffectsConstsCPU.edge, 1);
+        flag += ImGui::CheckboxFlags(
+            "Eye Adaptation", &m_postEffectsConstsCPU.isEyeAdaptationEnabled,
+            1);
         flag += ImGui::SliderFloat(
             "DepthScale", &m_postEffectsConstsCPU.depthScale, 1e-3, 1.0f);
         flag += ImGui::SliderFloat(
             "GammaScale", &m_postEffectsConstsCPU.gammaScale, 1e-3, 10.0f);
         flag += ImGui::SliderFloat(
             "FogStrength", &m_postEffectsConstsCPU.fogStrength, 0.0f, 10.0f);
+        flag += ImGui::SliderFloat("Exposure", &m_postEffectsConstsCPU.exposure,
+                                   0.0f, 10.0f);
         if (flag)
             D3D11Utils::UpdateBuffer(m_device, m_context,
                                      m_postEffectsConstsCPU,
@@ -550,6 +566,7 @@ void Engine::UpdateGUI() {
 
     ImGui::SetNextItemOpen(true, ImGuiCond_Once);
     if (ImGui::TreeNode("obj1")) {
+        int flag = 0;
         // Move
         Vector3 transition = m_mainObj->m_worldRow.Translation();
         m_mainObj->m_worldRow.Translation(Vector3(0.0f));
@@ -565,7 +582,6 @@ void Engine::UpdateGUI() {
                                   Matrix::CreateTranslation(transition));
         m_mainBoundingSphere.Center = m_mainObj->m_worldRow.Translation();
 
-        int flag = 0;
         flag += ImGui::CheckboxFlags(
             "Normal Map", &m_mainObj->m_materialConstsCPU.useNormalMap, 1);
 

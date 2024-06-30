@@ -43,6 +43,9 @@
     <ClCompile Include="ModelLoader.cpp">
       <Filter>Engine</Filter>
     </ClCompile>
+    <ClCompile Include="GBuffer.cpp">
+      <Filter>Engine</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AppBase.h">
@@ -87,48 +90,57 @@
     <ClInclude Include="Vertex.h">
       <Filter>Engine</Filter>
     </ClInclude>
+    <ClInclude Include="GBuffer.h">
+      <Filter>Engine</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include=".clang-format" />
-    <None Include="Common.hlsli">
+    <None Include="Shaders\Common.hlsli">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="BasicVS.hlsl">
+    <FxCompile Include="Shaders\SkyboxVS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="BasicPS.hlsl">
+    <FxCompile Include="Shaders\BasicPS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="SkyboxPS.hlsl">
+    <FxCompile Include="Shaders\BasicVS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="PostEffectsVS.hlsl">
+    <FxCompile Include="Shaders\DepthOnlyPS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="DepthOnlyPS.hlsl">
+    <FxCompile Include="Shaders\DepthOnlyVS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="PostEffectsPS.hlsl">
+    <FxCompile Include="Shaders\PostEffectsPS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="DepthOnlyVS.hlsl">
+    <FxCompile Include="Shaders\PostEffectsVS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="ShadowCubeMapVS.hlsl">
+    <FxCompile Include="Shaders\ShadowCubeMapGS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="ShadowCubeMapGS.hlsl">
+    <FxCompile Include="Shaders\ShadowCubeMapPS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="SkyboxVS.hlsl">
+    <FxCompile Include="Shaders\ShadowCubeMapVS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="ShadowCubeMapPS.hlsl">
+    <FxCompile Include="Shaders\SkyboxPS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="InstancedVS.hlsl">
+    <FxCompile Include="Shaders\GBufferVS.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\DeferredLighting.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\GBufferPS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
   </ItemGroup>

@@ -45,6 +45,11 @@ extern ComPtr<ID3D11PixelShader> postEffectsPS;
 extern ComPtr<ID3D11GeometryShader> normalGS;
 extern ComPtr<ID3D11GeometryShader> shadowCubeMapGS;
 
+//Gbuffer
+extern ComPtr<ID3D11VertexShader> gBufferVS;
+extern ComPtr<ID3D11PixelShader> gBufferPS;
+extern ComPtr<ID3D11PixelShader> deferredLighting;
+
 // Input Layouts
 extern ComPtr<ID3D11InputLayout> basicIL;
 extern ComPtr<ID3D11InputLayout> instancedIL;
@@ -73,6 +78,7 @@ extern GraphicsPSO depthOnlyPSO;
 extern GraphicsPSO shadowCubeMapPSO;
 extern GraphicsPSO postEffectsPSO;
 extern GraphicsPSO postProcessingPSO;
+extern GraphicsPSO gBufferPSO;
 
 void InitCommonStates(ComPtr<ID3D11Device> &device);
 void ShutdownStates();

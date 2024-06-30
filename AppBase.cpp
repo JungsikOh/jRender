@@ -462,6 +462,9 @@ void AppBase::CreateBuffers() {
     ThrowIfFailed(m_device->CreateShaderResourceView(
         m_resolvedBuffer.Get(), NULL, m_resolvedSRV.GetAddressOf()));
 
+    // G-Buffer
+    ThrowIfFailed(m_gBuffer.Init(m_device, m_screenWidth, m_screenHeight));
+
     CreateDepthBuffers();
 }
 

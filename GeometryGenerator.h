@@ -5,6 +5,7 @@
 
 #include "MeshData.h"
 #include "Vertex.h"
+#include "D3D11Utils.h"
 
 namespace jRenderer {
 using DirectX::SimpleMath::Vector2;

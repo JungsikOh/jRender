@@ -104,7 +104,7 @@ void Model::Initialize(ComPtr<ID3D11Device> &device,
         }
 
         if (!meshData.normalTextureFilename.empty()) {
-            D3D11Utils::CreateTexture(
+            D3D11Utils::CreateTexture(  
                 device, context, meshData.normalTextureFilename, false,
                 newMesh->normalTexture, newMesh->normalSRV);
             m_materialConstsCPU.useNormalMap = true;

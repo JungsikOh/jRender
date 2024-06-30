@@ -8,8 +8,8 @@
 #include <dxgi.h>                       // DXGIFactory
 #include <dxgi1_4.h>                    // DXGIFactory4
 #include <fp16.h>
-#include <iostream>
-
+#include <iostream>                      
+         
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image.h"
@@ -179,14 +179,11 @@ void CreateTextureHelper(ComPtr<ID3D11Device> &device,
     // HLSL 쉐이더 안에서는 SampleLevel() 사용
 }
 
-void D3D11Utils::CreateVertexShaderAndInputLayout(
-    ComPtr<ID3D11Device> &device, const wstring &filename,
-    const vector<D3D11_INPUT_ELEMENT_DESC> &inputElements,
-    ComPtr<ID3D11VertexShader> &m_vertexShader,
-    ComPtr<ID3D11InputLayout> &m_inputLayout) {
+void D3D11Utils::CreateComputeShader(ComPtr<ID3D11Device>& device, const wstring& filename,
+    ComPtr<ID3D11ComputeShader>& m_computeShader) {
 
-    ID3DBlob* shaderBlob;
-    ID3DBlob* errorBlob;
+    ID3DBlob *shaderBlob;  
+    ID3DBlob *errorBlob;              
 
     UINT compileFlags = 0;
 #if defined(DEBUG) || defined(_DEBUG)
@@ -197,6 +194,64 @@ void D3D11Utils::CreateVertexShaderAndInputLayout(
     // D3D_COMPILE_STANDARD_FILE_INCLUDE : This can use "include" in shader
     HRESULT hr = D3DCompileFromFile(
         filename.c_str(), 0, D3D_COMPILE_STANDARD_FILE_INCLUDE, "main",
+        "cs_5_0", compileFlags, 0, &shaderBlob, &errorBlob);
+
+    CheckResult(hr, errorBlob);
+
+    ThrowIfFailed(device->CreateComputeShader(shaderBlob->GetBufferPointer(),
+                                              shaderBlob->GetBufferSize(), NULL,
+                                              &m_computeShader));
+}
+
+void D3D11Utils::CreateVertexShaderAndInputLayout(
+    ComPtr<ID3D11Device> &device, const wstring &filename,
+    const vector<D3D11_INPUT_ELEMENT_DESC> &inputElements,
+    ComPtr<ID3D11VertexShader> &m_vertexShader,
+    ComPtr<ID3D11InputLayout> &m_inputLayout) {
+
+    ID3DBlob *shaderBlob;
+    ID3DBlob *errorBlob;
+
+    UINT compileFlags = 0;
+#if defined(DEBUG) || defined(_DEBUG)
+    compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
+#endif
+
+    // shader's first name is "main"
+    // D3D_COMPILE_STANDARD_FILE_INCLUDE : This can use "include" in shader
+    HRESULT hr = D3DCompileFromFile(
+        filename.c_str(), 0, D3D_COMPILE_STANDARD_FILE_INCLUDE, "main",
+        "vs_5_0", compileFlags, 0, &shaderBlob, &errorBlob);
+
+    CheckResult(hr, errorBlob);
+
+    device->CreateVertexShader(shaderBlob->GetBufferPointer(),
+                               shaderBlob->GetBufferSize(), NULL,
+                               &m_vertexShader);
+
+    device->CreateInputLayout(inputElements.data(), UINT(inputElements.size()),
+                              shaderBlob->GetBufferPointer(),
+                              shaderBlob->GetBufferSize(), &m_inputLayout);
+}
+
+void D3D11Utils::CreateVertexShaderAndInputLayoutSum(
+    ComPtr<ID3D11Device> &device, const wstring &filename,
+    const vector<D3D11_INPUT_ELEMENT_DESC> &inputElements,
+    ComPtr<ID3D11VertexShader> &m_vertexShader,
+    ComPtr<ID3D11InputLayout> &m_inputLayout) {
+
+    ID3DBlob *shaderBlob;
+    ID3DBlob *errorBlob;
+
+    UINT compileFlags = 0;
+#if defined(DEBUG) || defined(_DEBUG)
+    compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
+#endif
+
+    // shader's first name is "main"
+    // D3D_COMPILE_STANDARD_FILE_INCLUDE : This can use "include" in shader
+    HRESULT hr = D3DCompileFromFile(
+        filename.c_str(), 0, D3D_COMPILE_STANDARD_FILE_INCLUDE, "VSMain",
         "vs_5_0", compileFlags, 0, &shaderBlob, &errorBlob);
 
     CheckResult(hr, errorBlob);
@@ -305,6 +360,30 @@ void D3D11Utils::CreatePixelShader(ComPtr<ID3D11Device> &device,
                               &m_pixelShader);
 }
 
+void D3D11Utils::CreatePixelShaderSum(ComPtr<ID3D11Device> &device,
+                                   const wstring &filename,
+                                   ComPtr<ID3D11PixelShader> &m_pixelShader) {
+    ComPtr<ID3DBlob> shaderBlob;
+    ComPtr<ID3DBlob> errorBlob;
+
+    UINT compileFlags = 0;
+#if defined(DEBUG) || defined(_DEBUG)
+    compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
+#endif
+
+    // shader's first name is "main"
+    // D3D_COMPILE_STANDARD_FILE_INCLUDE : This can use "include" in shader
+    HRESULT hr = D3DCompileFromFile(
+        filename.c_str(), 0, D3D_COMPILE_STANDARD_FILE_INCLUDE, "PSMain",
+        "ps_5_0", compileFlags, 0, &shaderBlob, &errorBlob);
+
+    CheckResult(hr, errorBlob.Get());
+
+    device->CreatePixelShader(shaderBlob->GetBufferPointer(),
+                              shaderBlob->GetBufferSize(), NULL,
+                              &m_pixelShader);
+}
+
 void D3D11Utils::CreateIndexBuffer(ComPtr<ID3D11Device> &device,
                                    const std::vector<uint32_t> &indices,
                                    ComPtr<ID3D11Buffer> &indexBuffer) {
@@ -331,7 +410,7 @@ void D3D11Utils::CreateMetallicRoughnessTexture(
     const std::string metallicFilename, const std::string roughnessFilename,
     ComPtr<ID3D11Texture2D> &texture, ComPtr<ID3D11ShaderResourceView> &srv) {
 
-    // GLTF 방식은 이미 합쳐져 있음  
+    // GLTF 방식은 이미 합쳐져 있음
     if (!metallicFilename.empty() && (metallicFilename == roughnessFilename)) {
         CreateTexture(device, context, metallicFilename, false, texture, srv);
     } else {

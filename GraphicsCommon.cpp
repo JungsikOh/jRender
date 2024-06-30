@@ -50,6 +50,10 @@ ComPtr<ID3D11PixelShader> postEffectsPS;
 ComPtr<ID3D11GeometryShader> normalGS;
 ComPtr<ID3D11GeometryShader> shadowCubeMapGS;
 
+ComPtr<ID3D11VertexShader> gBufferVS;
+ComPtr<ID3D11PixelShader> gBufferPS;
+ComPtr<ID3D11PixelShader> deferredLighting;
+
 // Input Layouts
 ComPtr<ID3D11InputLayout> basicIL;
 ComPtr<ID3D11InputLayout> instancedIL;
@@ -75,6 +79,7 @@ GraphicsPSO depthOnlyPSO;
 GraphicsPSO shadowCubeMapPSO;
 GraphicsPSO postEffectsPSO;
 GraphicsPSO postProcessingPSO;
+GraphicsPSO gBufferPSO;
 
 } // namespace Graphics
 
@@ -296,6 +301,8 @@ void Graphics::InitShaders(ComPtr<ID3D11Device> &device) {
         device, L"Shaders/ShadowCubeMapVS.hlsl", skyboxIE, shadowCubeMapVS, skyboxIL);
     D3D11Utils::CreateVertexShaderAndInputLayout(
         device, L"Shaders/PostEffectsVS.hlsl", basicIEs, postEffectsVS, skyboxIL);
+    D3D11Utils::CreateVertexShaderAndInputLayout(
+        device, L"Shaders/GBufferVS.hlsl", basicIEs, gBufferVS, basicIL);
 
     D3D11Utils::CreatePixelShader(device, L"Shaders/BasicPS.hlsl", basicPS);
     // D3D11Utils::CreatePixelShader(device, L"NormalPS.hlsl", normalPS);
@@ -307,6 +314,9 @@ void Graphics::InitShaders(ComPtr<ID3D11Device> &device) {
     D3D11Utils::CreatePixelShader(device, L"Shaders/ShadowCubeMapPS.hlsl",
                                   shadowCubeMapPS);
     D3D11Utils::CreatePixelShader(device, L"Shaders/PostEffectsPS.hlsl", postEffectsPS);
+    D3D11Utils::CreatePixelShader(device, L"Shaders/GBufferPS.hlsl", gBufferPS);
+    D3D11Utils::CreatePixelShader(device, L"Shaders/DeferredLighting.hlsl",
+                                  deferredLighting);
 
     // D3D11Utils::CreateGeometryShader(device, L"NormalGS.hlsl", normalGS);
     D3D11Utils::CreateGeometryShader(device, L"Shaders/ShadowCubeMapGS.hlsl",
@@ -401,7 +411,7 @@ void Graphics::InitPipelineStates(ComPtr<ID3D11Device> &device) {
 
     // postEffectsPSO
     postEffectsPSO.m_vertexShader = postEffectsVS;
-    postEffectsPSO.m_pixelShader = postEffectsPS;
+    postEffectsPSO.m_pixelShader = deferredLighting;
     postEffectsPSO.m_inputLayout = skyboxIL;
     postEffectsPSO.m_rasterizerState = postProcessingRS;
 
@@ -410,6 +420,11 @@ void Graphics::InitPipelineStates(ComPtr<ID3D11Device> &device) {
     // postProcessingPSO.m_pixelShader = depthOnlyPS; // dummy
     // postProcessingPSO.m_inputLayout = samplingIL;
     // postProcessingPSO.m_rasterizerState = postProcessingRS;
+
+    // GBufferPSO
+    gBufferPSO = defaultSolidPSO;
+    gBufferPSO.m_vertexShader = gBufferVS;
+    gBufferPSO.m_pixelShader = gBufferPS;
 }
 
 void Graphics::ShutdownStates() {

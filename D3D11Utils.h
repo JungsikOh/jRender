@@ -2,13 +2,21 @@
 
 #include <d3d11.h>
 #include <d3dcompiler.h>
+#include <directxtk/SimpleMath.h>
 #include <iostream>
 #include <memory>
 #include <string>
 #include <vector>
 #include <windows.h>
 #include <wrl/client.h> // Comptr
-#include <directxtk/SimpleMath.h>
+
+#define SAFE_RELEASE(p)                                                        \
+    {                                                                          \
+        if ((p)) {                                                             \
+            (p)->Release();                                                    \
+            (p) = 0;                                                           \
+        }                                                                      \
+    }
 
 namespace jRenderer {
 
@@ -26,7 +34,30 @@ inline void ThrowIfFailed(HRESULT hr) {
 
 class D3D11Utils {
   public:
+    static Vector3 GetTangent(Vector3 edge1, Vector3 edge2, Vector2 deltaTex1,
+                              Vector2 deltaTex2) {
+        const float f =
+            1.0f / (deltaTex1.x * deltaTex2.y - deltaTex1.y * deltaTex2.x);
+
+        Vector3 tangent;
+        tangent.x = f * (deltaTex2.y * edge1.x - deltaTex1.y * edge2.x);
+        tangent.y = f * (deltaTex2.y * edge1.y - deltaTex1.y * edge2.y);
+        tangent.z = f * (deltaTex2.y * edge1.z - deltaTex1.y * edge2.z);
+
+        return tangent;
+    }
+
+    static void
+    CreateComputeShader(ComPtr<ID3D11Device> &device, const wstring &filename,
+                        ComPtr<ID3D11ComputeShader> &m_computeShader);
+
     static void CreateVertexShaderAndInputLayout(
+        ComPtr<ID3D11Device> &device, const wstring &filename,
+        const vector<D3D11_INPUT_ELEMENT_DESC> &inputElements,
+        ComPtr<ID3D11VertexShader> &m_vertexShader,
+        ComPtr<ID3D11InputLayout> &m_inputLayout);
+
+    static void CreateVertexShaderAndInputLayoutSum(
         ComPtr<ID3D11Device> &device, const wstring &filename,
         const vector<D3D11_INPUT_ELEMENT_DESC> &inputElements,
         ComPtr<ID3D11VertexShader> &m_vertexShader,
@@ -47,6 +78,10 @@ class D3D11Utils {
     static void CreatePixelShader(ComPtr<ID3D11Device> &device,
                                   const wstring &filename,
                                   ComPtr<ID3D11PixelShader> &m_pixelShader);
+
+    static void CreatePixelShaderSum(ComPtr<ID3D11Device> &device,
+                                     const wstring &filename,
+                                     ComPtr<ID3D11PixelShader> &m_pixelShader);
 
     static void CreateIndexBuffer(ComPtr<ID3D11Device> &device,
                                   const vector<uint32_t> &incides,
@@ -91,7 +126,7 @@ class D3D11Utils {
         bufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
         bufferDesc.MiscFlags = 0;
         bufferDesc.StructureByteStride = 0;
-          
+
         // initialize in MS Sample
         D3D11_SUBRESOURCE_DATA instanceBufferData = {0};
         instanceBufferData.pSysMem = instances.data();

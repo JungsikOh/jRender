@@ -81,4 +81,15 @@ struct PixelShaderInput
     float3 tangentWorld : TANGENT0;
 };
 
+static float3 GetViewSpacePosition(float2 texcoord, float depth)
+{
+    float4 clipSpaceLocation;
+    clipSpaceLocation.xy = texcoord * 2.0f - 1.0f;
+    clipSpaceLocation.y *= -1;
+    clipSpaceLocation.z = depth;
+    clipSpaceLocation.w = 1.0f;
+    float4 homogenousLocation = mul(clipSpaceLocation, invProj);
+    return homogenousLocation.xyz / homogenousLocation.w;
+}
+
 #endif // __COMMON_HLSLI__

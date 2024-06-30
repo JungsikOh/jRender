@@ -7,7 +7,7 @@ Texture2D metallicTex : register(t3);
 Texture2D emissiveTex : register(t4);
 
 cbuffer MaterialConstants : register(b0)
-{
+{ 
     float3 albedoFactor; // baseColor
     float roughnessFactor;
     float metallicFactor;
@@ -39,7 +39,7 @@ float3 GetNormal(PixelShaderInput input)
     {
         float3 normal = normalTex.SampleLevel(linearWrapSampler, input.texcoord, lodBias).rgb; // 범위 [0, 1]
         normal = 2.0 * normal - 1.0; // 범위 조절 [-1.0, 1.0]
-
+           
         // OpenGL 용 노멀맵일 경우에는 y 방향을 뒤집어줍니다.
         normal.y = invertNormalMapY ? -normal.y : normal.y;
         

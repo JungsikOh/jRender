@@ -11,6 +11,7 @@
 #include "ConstantBuffers.h"
 #include "D3D11Utils.h"
 #include "GraphicsPSO.h"
+#include "GBuffer.h"
 
 namespace jRenderer {
 
@@ -133,6 +134,9 @@ class AppBase {
       ComPtr<ID3D11ShaderResourceView> m_irradianceSRV;
       ComPtr<ID3D11ShaderResourceView> m_specularSRV;
       ComPtr<ID3D11ShaderResourceView> m_brdfSRV;
+
+      // G-Buffer
+      GBuffer m_gBuffer;
 
       bool m_lightRotate = false;
 };
