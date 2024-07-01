@@ -52,9 +52,10 @@ ComPtr<ID3D11GeometryShader> shadowCubeMapGS;
 
 ComPtr<ID3D11VertexShader> gBufferVS;
 ComPtr<ID3D11PixelShader> gBufferPS;
-ComPtr<ID3D11PixelShader> deferredLighting;
+ComPtr<ID3D11PixelShader> deferredLightingPS;
 
 // RenderPass
+ComPtr<ID3D11VertexShader> ScreenVS;
 ComPtr<ID3D11PixelShader> renderPassPS;
 
 // Input Layouts
@@ -63,6 +64,7 @@ ComPtr<ID3D11InputLayout> instancedIL;
 ComPtr<ID3D11InputLayout> samplingIL;
 ComPtr<ID3D11InputLayout> skyboxIL;
 ComPtr<ID3D11InputLayout> postProcessingIL;
+ComPtr<ID3D11InputLayout> nullIL;
 
 // Graphics Pipeline States
 GraphicsPSO defaultSolidPSO;
@@ -80,6 +82,7 @@ GraphicsPSO reflectSkyboxWirePSO;
 GraphicsPSO normalsPSO;
 GraphicsPSO depthOnlyPSO;
 GraphicsPSO shadowCubeMapPSO;
+GraphicsPSO deferredLightingPSO;
 GraphicsPSO postEffectsPSO;
 GraphicsPSO postProcessingPSO;
 GraphicsPSO gBufferPSO;
@@ -92,7 +95,7 @@ void Graphics::InitCommonStates(ComPtr<ID3D11Device> &device) {
     InitShaders(device);
     InitSamplers(device);
     InitRasterizerStates(device);
-    // InitBlendStates(device);
+    InitBlendStates(device);
     InitDepthStencilStates(device);
     InitPipelineStates(device);
 }
@@ -183,6 +186,34 @@ void Graphics::InitRasterizerStates(ComPtr<ID3D11Device> &device) {
     rastDesc.DepthClipEnable = false;
     ThrowIfFailed(device->CreateRasterizerState(
         &rastDesc, postProcessingRS.GetAddressOf()));
+}
+
+void Graphics::InitBlendStates(ComPtr<ID3D11Device> &device) {
+
+    // "이미 그려져있는 화면"과 어떻게 섞을지를 결정
+    // Dest: 이미 그려져 있는 값들을 의미
+    // Src: 픽셀 쉐이더가 계산한 값들을 의미 (여기서는 마지막 거울)
+
+    D3D11_BLEND_DESC mirrorBlendDesc;
+    ZeroMemory(&mirrorBlendDesc, sizeof(mirrorBlendDesc));
+    mirrorBlendDesc.AlphaToCoverageEnable = false; // MSAA
+    mirrorBlendDesc.IndependentBlendEnable = false;
+    // 개별 RenderTarget에 대해서 설정 (최대 8개)
+    mirrorBlendDesc.RenderTarget[0].BlendEnable = true;
+    mirrorBlendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_BLEND_FACTOR;
+    mirrorBlendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_BLEND_FACTOR;
+    mirrorBlendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+
+    mirrorBlendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+    mirrorBlendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ONE;
+    mirrorBlendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+
+    // 필요하면 RGBA 각각에 대해서도 조절 가능
+    mirrorBlendDesc.RenderTarget[0].RenderTargetWriteMask =
+        D3D11_COLOR_WRITE_ENABLE_ALL;
+
+    ThrowIfFailed(
+        device->CreateBlendState(&mirrorBlendDesc, mirrorBS.GetAddressOf()));
 }
 
 void Graphics::InitDepthStencilStates(ComPtr<ID3D11Device> &device) {
@@ -305,8 +336,8 @@ void Graphics::InitShaders(ComPtr<ID3D11Device> &device) {
         device, L"Shaders/ShadowCubeMapVS.hlsl", skyboxIE, shadowCubeMapVS,
         skyboxIL);
     D3D11Utils::CreateVertexShaderAndInputLayout(
-        device, L"Shaders/PostEffectsVS.hlsl", basicIEs, postEffectsVS,
-        skyboxIL);
+        device, L"Shaders/PostEffectsVS.hlsl", skyboxIE, postEffectsVS,
+        samplingIL);
     D3D11Utils::CreateVertexShaderAndInputLayout(
         device, L"Shaders/GBufferVS.hlsl", basicIEs, gBufferVS, basicIL);
 
@@ -321,9 +352,10 @@ void Graphics::InitShaders(ComPtr<ID3D11Device> &device) {
                                   postEffectsPS);
     D3D11Utils::CreatePixelShader(device, L"Shaders/GBufferPS.hlsl", gBufferPS);
     D3D11Utils::CreatePixelShader(device, L"Shaders/DeferredLightingPS.hlsl",
-                                  deferredLighting);
+                                  deferredLightingPS);
 
-    D3D11Utils::CreatePixelShader(device, L"Shaders/RenderPass/RenderPassPS.hlsl", renderPassPS);
+    D3D11Utils::CreatePixelShader(
+        device, L"Shaders/RenderPass/RenderPassPS.hlsl", renderPassPS);
 
     // D3D11Utils::CreateGeometryShader(device, L"NormalGS.hlsl", normalGS);
     D3D11Utils::CreateGeometryShader(device, L"Shaders/ShadowCubeMapGS.hlsl",
@@ -345,18 +377,22 @@ void Graphics::InitPipelineStates(ComPtr<ID3D11Device> &device) {
     defaultWirePSO = defaultSolidPSO;
     defaultWirePSO.m_rasterizerState = wireRS;
 
-    //// stencilMarkPSO;
-    // stencilMaskPSO = defaultSolidPSO;
-    // stencilMaskPSO.m_depthStencilState = maskDSS;
-    // stencilMaskPSO.m_stencilRef = 1;
-    // stencilMaskPSO.m_vertexShader = depthOnlyVS;
-    // stencilMaskPSO.m_pixelShader = depthOnlyPS;
+    // stencilMarkPSO;
+     stencilMaskPSO = defaultSolidPSO;
+     stencilMaskPSO.m_depthStencilState = maskDSS;
+     stencilMaskPSO.m_stencilRef = 1;
+     stencilMaskPSO.m_vertexShader = depthOnlyVS;
+     stencilMaskPSO.m_pixelShader = depthOnlyPS;
 
-    //// reflectSolidPSO: 반사되면 Winding 반대
-    // reflectSolidPSO = defaultSolidPSO;
-    // reflectSolidPSO.m_depthStencilState = drawMaskedDSS;
-    // reflectSolidPSO.m_rasterizerState = solidCCWRS; // 반시계
-    // reflectSolidPSO.m_stencilRef = 1;
+    // reflectSolidPSO: 반사되면 Winding 반대
+     reflectSolidPSO = defaultSolidPSO;
+     reflectSolidPSO.m_vertexShader = skyboxVS;
+     reflectSolidPSO.m_pixelShader = skyboxPS;
+     reflectSolidPSO.m_inputLayout = skyboxIL;
+     reflectSolidPSO.m_depthStencilState = drawMaskedDSS;
+     reflectSolidPSO.m_blendState = mirrorBS;
+     //reflectSolidPSO.m_rasterizerState = solidCCWRS; // 반시계
+     reflectSolidPSO.m_stencilRef = 0;
 
     //// reflectWirePSO: 반사되면 Winding 반대
     // reflectWirePSO = reflectSolidPSO;
@@ -416,27 +452,34 @@ void Graphics::InitPipelineStates(ComPtr<ID3D11Device> &device) {
     shadowCubeMapPSO.m_pixelShader = shadowCubeMapPS;
     shadowCubeMapPSO.m_rasterizerState = depthOnlyRS;
 
+    // GBufferPSO
+    gBufferPSO = defaultSolidPSO;
+    gBufferPSO.m_vertexShader = gBufferVS;
+    gBufferPSO.m_pixelShader = gBufferPS;
+
+    // DeferredLightingPSO
+    deferredLightingPSO.m_vertexShader = postEffectsVS;
+    deferredLightingPSO.m_pixelShader = deferredLightingPS;
+    deferredLightingPSO.m_inputLayout = samplingIL;
+    deferredLightingPSO.m_rasterizerState = postProcessingRS;
+    
+
     // postEffectsPSO
     postEffectsPSO.m_vertexShader = postEffectsVS;
-    postEffectsPSO.m_pixelShader = deferredLighting;
-    postEffectsPSO.m_inputLayout = skyboxIL;
+    postEffectsPSO.m_pixelShader = postEffectsPS;
+    postEffectsPSO.m_inputLayout = samplingIL;
     postEffectsPSO.m_rasterizerState = postProcessingRS;
+
+    // RenderPassPSO
+    renderPassPSO = postEffectsPSO;
+    renderPassPSO.m_vertexShader = postEffectsVS;
+    renderPassPSO.m_pixelShader = renderPassPS;
 
     //// postProcessingPSO
     // postProcessingPSO.m_vertexShader = samplingVS;
     // postProcessingPSO.m_pixelShader = depthOnlyPS; // dummy
     // postProcessingPSO.m_inputLayout = samplingIL;
     // postProcessingPSO.m_rasterizerState = postProcessingRS;
-
-    // GBufferPSO
-    gBufferPSO = defaultSolidPSO;
-    gBufferPSO.m_vertexShader = gBufferVS;
-    gBufferPSO.m_pixelShader = gBufferPS;
-
-    // RenderPassPSO
-    renderPassPSO = postEffectsPSO;
-    renderPassPSO.m_vertexShader = postEffectsVS;
-    renderPassPSO.m_pixelShader = renderPassPS;
 }
 
 void Graphics::ShutdownStates() {

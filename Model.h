@@ -36,6 +36,8 @@ class Model {
 
     void Render(ComPtr<ID3D11DeviceContext> &context);
 
+    void RenderScreen(ComPtr<ID3D11DeviceContext> &context);
+
     void RenderNormals(ComPtr<ID3D11DeviceContext> &context);
 
     void UpdateWorldRow(const Matrix &worldRow);        

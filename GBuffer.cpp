@@ -19,10 +19,8 @@ HRESULT GBuffer::Init(ComPtr<ID3D11Device> &g_pDevice, UINT width, UINT height) 
     Deinit(); // Clear the previous targets
 
     // Texture formats
-    static const DXGI_FORMAT depthStencilTextureFormat =
-        DXGI_FORMAT_R24G8_TYPELESS;
-    static const DXGI_FORMAT basicColorTextureFormat =
-        DXGI_FORMAT_R8G8B8A8_UNORM;
+    static const DXGI_FORMAT depthStencilTextureFormat = DXGI_FORMAT_R24G8_TYPELESS;
+    static const DXGI_FORMAT basicColorTextureFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
     static const DXGI_FORMAT normalTextureFormat = DXGI_FORMAT_R11G11B10_FLOAT;
     static const DXGI_FORMAT specPowTextureFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
 

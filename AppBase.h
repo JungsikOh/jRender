@@ -79,6 +79,16 @@ class AppBase {
       ComPtr<ID3D11RenderTargetView> m_resolvedRTV;
       ComPtr<ID3D11ShaderResourceView> m_resolvedSRV;
 
+      // CubeMap
+      ComPtr<ID3D11Texture2D> m_cubeMapStencilBuffer;
+      ComPtr<ID3D11RenderTargetView> m_cubeMapStencilRTV;
+      ComPtr<ID3D11ShaderResourceView> m_cubeMapStencilSRV;
+
+      // CubeMap2
+      ComPtr<ID3D11Texture2D> m_cubeMapBuffer;
+      ComPtr<ID3D11RenderTargetView> m_cubeMapRTV;
+      ComPtr<ID3D11ShaderResourceView> m_cubeMapSRV;
+
       // Depth Buffer
       ComPtr<ID3D11Texture2D> m_depthOnlyBuffer; // No MSAA
       ComPtr<ID3D11DepthStencilView> m_depthOnlyDSV;

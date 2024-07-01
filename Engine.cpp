@@ -34,7 +34,7 @@ bool Engine::Initialize() {
             make_shared<Model>(m_device, m_context, vector{screenBox}, 0);
     }
 
-    // 렌더 패스 그리기용 박스       
+    // 렌더 패스 그리기용 박스
     {
         MeshData screenSquare = GeometryGenerator::MakeSquare(0.2f);
         for (int i = 0; i < 3; i++) {
@@ -46,7 +46,7 @@ bool Engine::Initialize() {
 
         for (int i = 0; i < 3; i++) {
             m_screenRenderPass[i]->UpdateConstantBuffers(m_device, m_context);
-        } 
+        }
     }
 
     // Skybox object
@@ -208,7 +208,7 @@ void Engine::Update(float dt) {
     const Matrix viewRow = m_camera.GetViewRow();
     const Matrix projRow = m_camera.GetProjRow();
 
-    // Update Global ConstantBuffer
+    // Update Global ConstantBuffer 
     AppBase::UpdateGlobalConstants(eyeWorld, viewRow, projRow);
 
     // 조명 시점 그리기
@@ -222,7 +222,7 @@ void Engine::Update(float dt) {
             // 수정해줘야한다.
             if (abs(up.Dot(light.direction) + 1.0f) < 1e-5)
                 up = Vector3(1.0f, 0.0f, 0.0f);
-
+             
             // https://learn.microsoft.com/ko-kr/windows/win32/api/directxmath/nf-directxmath-xmmatrixperspectivefovlh
             Matrix lightProjRow = XMMatrixPerspectiveFovLH(
                 XMConvertToRadians(120.0f), 1.0f, 0.01f, 25.0f);
@@ -415,16 +415,17 @@ void Engine::Render() {
     m_context->PSSetSamplers(0, UINT(Graphics::sampleStates.size()),
                              Graphics::sampleStates.data());
     const float clearColor[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+    // for cubemap texture
+    vector<ID3D11ShaderResourceView *> commonSRVs = {
+        m_specularSRV.Get(), m_irradianceSRV.Get(), m_envSRV.Get(),
+        m_brdfSRV.Get()};
+    m_context->PSSetShaderResources(10, UINT(commonSRVs.size()),
+                                    commonSRVs.data());
+    AppBase::SetGlobalConsts(m_globalConstsGPU);
+
+    vector<ID3D11RenderTargetView *> RTVs = {m_resolvedRTV.Get()};
 
     if (false) {
-        // for cubemap texture
-        vector<ID3D11ShaderResourceView *> commonSRVs = {
-            m_specularSRV.Get(), m_irradianceSRV.Get(), m_envSRV.Get(),
-            m_brdfSRV.Get()};
-        m_context->PSSetShaderResources(10, UINT(commonSRVs.size()),
-                                        commonSRVs.data());
-
-        vector<ID3D11RenderTargetView *> RTVs = {m_resolvedRTV.Get()};
 
         AppBase::SetPipelineState(Graphics::depthOnlyPSO);
         AppBase::SetGlobalConsts(m_globalConstsGPU);
@@ -495,41 +496,81 @@ void Engine::Render() {
         for (auto &i : m_basicList) {
             i->Render(m_context);
         }
-        AppBase::SetPipelineState(Graphics::skyboxSolidPSO);
-        AppBase::SetGlobalConsts(m_globalConstsGPU);
-        m_skybox->Render(m_context);
     }
+    m_context->ClearRenderTargetView(m_cubeMapRTV.Get(), clearColor);
+    m_context->ClearDepthStencilView(m_depthStencilView.Get(),
+                                     D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
+                                     1.0f, 0);
+    m_context->OMSetRenderTargets(1, m_cubeMapRTV.GetAddressOf(),
+                                  m_depthStencilView.Get());
+    AppBase::SetPipelineState(Graphics::stencilMaskPSO);
+    for (auto &i : m_basicList) {
+        i->Render(m_context);
+    }
+    m_context->ClearRenderTargetView(m_cubeMapStencilRTV.Get(), clearColor);
+    m_context->ClearDepthStencilView(m_depthStencilView.Get(),
+                                     D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
+                                     1.0f, 0);
+    m_context->OMSetRenderTargets(1, m_cubeMapStencilRTV.GetAddressOf(),
+                                  m_depthStencilView.Get());
+    AppBase::SetPipelineState(Graphics::stencilMaskPSO);
+    for (auto &i : m_basicList) {
+        i->Render(m_context);
+    }
+    m_context->ClearRenderTargetView(m_cubeMapRTV.Get(), clearColor);
+    m_context->ClearDepthStencilView(m_depthStencilView.Get(),
+                                     D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
+                                     1.0f, 0);
+    m_context->OMSetRenderTargets(1, m_cubeMapRTV.GetAddressOf(),
+                                  m_depthStencilView.Get());
+    AppBase::SetPipelineState(Graphics::skyboxSolidPSO);
+    m_skybox->Render(m_context);
+
     if (true) {
         AppBase::SetPipelineState(Graphics::gBufferPSO);
-        AppBase::SetGlobalConsts(m_globalConstsGPU);
         m_gBuffer.PreRender(m_context);
         for (auto &i : m_basicList) {
             i->Render(m_context);
-        }
+        } 
     }
-    // m_gBuffer.PostRender(m_context);
+       
+    // Post-Processing 
+    m_context->ClearRenderTargetView(m_resolvedRTV.Get(), clearColor);
+    m_context->ClearDepthStencilView(m_depthStencilView.Get(),
+                                     D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
+                                     1.0f, 0);
+    m_context->OMSetRenderTargets(1, m_resolvedRTV.GetAddressOf(),
+                                  m_depthStencilView.Get());
 
-    // Post-Processing
-    m_context->ClearRenderTargetView(m_backBufferRTV.Get(), clearColor);
-    m_context->OMSetRenderTargets(1, m_backBufferRTV.GetAddressOf(), NULL);
-
-    AppBase::SetPipelineState(Graphics::postEffectsPSO);
-    AppBase::SetGlobalConsts(m_globalConstsGPU); 
-    vector<ID3D11ShaderResourceView *> SRVs = {m_gBuffer.GetColorView(),
-                                               m_gBuffer.GetNormalView(),
-                                               m_gBuffer.GetDepthView()};
-    // vector<ID3D11ShaderResourceView *> SRVs = {m_resolvedSRV.Get(),
-    //                                            m_depthOnlySRV.Get()};
-
-    // m_context->PSSetConstantBuffers(2, 1,
-    //                                 m_postEffectsConstsGPU.GetAddressOf());
-    m_context->PSSetShaderResources(5, UINT(SRVs.size()), SRVs.data());
+    AppBase::SetPipelineState(Graphics::deferredLightingPSO);
+    vector<ID3D11ShaderResourceView *> deferredLightingSRVs = {
+        m_gBuffer.GetColorView(), m_gBuffer.GetNormalView(),
+        m_gBuffer.GetDepthView()};
+    m_context->PSSetShaderResources(5, UINT(deferredLightingSRVs.size()),
+                                    deferredLightingSRVs.data());
     m_screenSquare->Render(m_context);
 
+    m_context->ClearRenderTargetView(m_backBufferRTV.Get(), clearColor);
+    m_context->OMSetRenderTargets(1, m_backBufferRTV.GetAddressOf(),
+                                  NULL);    
+
+    vector<ID3D11ShaderResourceView *> postEffectSRVs = {  
+        m_resolvedSRV.Get(), m_gBuffer.GetDepthView(), m_cubeMapSRV.Get(),
+        m_cubeMapStencilSRV.Get()};
+     
+    AppBase::SetPipelineState(Graphics::postEffectsPSO);
+    AppBase::SetGlobalConsts(m_globalConstsGPU);
+    m_context->PSSetConstantBuffers(2, 1,
+                                    m_postEffectsConstsGPU.GetAddressOf());
+    m_context->PSSetShaderResources(5, UINT(postEffectSRVs.size()),
+                                    postEffectSRVs.data());
+    m_screenSquare->Render(m_context);
+
+    // Render Pass
     AppBase::SetPipelineState(Graphics::renderPassPSO);
     AppBase::SetGlobalConsts(m_globalConstsGPU);
     for (int i = 0; i < 3; i++) {
-        m_context->PSSetShaderResources(5, 1, &SRVs[i]);
+        m_context->PSSetShaderResources(5, 1, &deferredLightingSRVs[i]);
         m_screenRenderPass[i]->Render(m_context);
     }
 }

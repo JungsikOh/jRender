@@ -9,6 +9,12 @@ cbuffer MeshConstants : register(b0)
     float dummy;
 };
 
+cbuffer InstancedConsts : register(b2)
+{
+    float3 instanceMat[MAX_INSTANCE];
+    int useInstancing;
+}
+
 struct VSToPS
 {
     float4 position : SV_Position;
@@ -21,6 +27,11 @@ VSToPS main(VertexShaderInput input)
 {
     VSToPS output;
 
+    if (useInstancing)
+    {
+        input.posModel += instanceMat[input.instanceID];
+    }
+    
     float4 pos = mul(float4(input.posModel, 1.0), world);
     output.position = mul(pos, viewProj);
     output.texcoord = input.texcoord;

@@ -378,15 +378,15 @@ void AppBase::SetShadowViewport() {
     shadowViewport.MaxDepth = 1.0f;
 
     m_context->RSSetViewports(1, &shadowViewport);
-}                  
+}
 
 void AppBase::SetGlobalConsts(ComPtr<ID3D11Buffer> &globalConstsGPU) {
     // 쉐이더와 일관성 유지 register(b1)
     m_context->VSSetConstantBuffers(1, 1, globalConstsGPU.GetAddressOf());
     m_context->PSSetConstantBuffers(1, 1, globalConstsGPU.GetAddressOf());
     m_context->GSSetConstantBuffers(1, 1, globalConstsGPU.GetAddressOf());
-} 
-  
+}
+
 void AppBase::SetPipelineState(const GraphicsPSO &pso) {
     m_context->VSSetShader(pso.m_vertexShader.Get(), 0, 0);
     m_context->PSSetShader(pso.m_pixelShader.Get(), 0, 0);
@@ -446,7 +446,7 @@ void AppBase::CreateBuffers() {
     // NO MSAA RTV / SRV for PostPrecessing
     D3D11_TEXTURE2D_DESC desc;
     backBuffer->GetDesc(&desc);
-    desc.MipLevels = desc.ArraySize = 1;   
+    desc.MipLevels = desc.ArraySize = 1;
     desc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
     desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
     desc.Usage = D3D11_USAGE_DEFAULT; // It can copy from staging texture.
@@ -461,6 +461,24 @@ void AppBase::CreateBuffers() {
         m_resolvedBuffer.Get(), NULL, m_resolvedRTV.GetAddressOf()));
     ThrowIfFailed(m_device->CreateShaderResourceView(
         m_resolvedBuffer.Get(), NULL, m_resolvedSRV.GetAddressOf()));
+
+    // NO MSAA RTV / SRV for CubeMap
+    ThrowIfFailed(
+        m_device->CreateTexture2D(&desc, NULL, m_cubeMapBuffer.GetAddressOf()));
+    ThrowIfFailed(m_device->CreateRenderTargetView(
+        m_cubeMapBuffer.Get(), NULL, m_cubeMapRTV.GetAddressOf()));
+    ThrowIfFailed(m_device->CreateShaderResourceView(
+        m_cubeMapBuffer.Get(), NULL, m_cubeMapSRV.GetAddressOf()));
+
+    // NO MSAA RTV / SRV for CubeMap
+    ThrowIfFailed(m_device->CreateTexture2D(
+        &desc, NULL, m_cubeMapStencilBuffer.GetAddressOf()));
+    ThrowIfFailed(
+        m_device->CreateRenderTargetView(m_cubeMapStencilBuffer.Get(), NULL,
+                                         m_cubeMapStencilRTV.GetAddressOf()));
+    ThrowIfFailed(
+        m_device->CreateShaderResourceView(m_cubeMapStencilBuffer.Get(), NULL,
+                                           m_cubeMapStencilSRV.GetAddressOf()));
 
     // G-Buffer
     ThrowIfFailed(m_gBuffer.Init(m_device, m_screenWidth, m_screenHeight));

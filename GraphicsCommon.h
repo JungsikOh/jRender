@@ -48,9 +48,10 @@ extern ComPtr<ID3D11GeometryShader> shadowCubeMapGS;
 //Gbuffer
 extern ComPtr<ID3D11VertexShader> gBufferVS;
 extern ComPtr<ID3D11PixelShader> gBufferPS;
-extern ComPtr<ID3D11PixelShader> deferredLighting;
+extern ComPtr<ID3D11PixelShader> deferredLightingPS;
 
 // Render Pass
+extern ComPtr<ID3D11VertexShader> ScreenVS;
 extern ComPtr<ID3D11PixelShader> renderPassPS;
 
 // Input Layouts
@@ -59,6 +60,7 @@ extern ComPtr<ID3D11InputLayout> instancedIL;
 extern ComPtr<ID3D11InputLayout> samplingIL;
 extern ComPtr<ID3D11InputLayout> skyboxIL;
 extern ComPtr<ID3D11InputLayout> postProcessingIL;
+extern ComPtr<ID3D11InputLayout> nullIL;
 
 // Blend States
 extern ComPtr<ID3D11BlendState> mirrorBS;
@@ -79,6 +81,7 @@ extern GraphicsPSO reflectSkyboxWirePSO;
 extern GraphicsPSO normalsPSO;
 extern GraphicsPSO depthOnlyPSO;
 extern GraphicsPSO shadowCubeMapPSO;
+extern GraphicsPSO deferredLightingPSO;
 extern GraphicsPSO postEffectsPSO;
 extern GraphicsPSO postProcessingPSO;
 extern GraphicsPSO gBufferPSO;

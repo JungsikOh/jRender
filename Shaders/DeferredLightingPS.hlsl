@@ -32,12 +32,13 @@ float4 main(VSToPS input) : SV_Target
     float depth = DepthTex.Sample(linearWrapSampler, input.texcoord);
     float3 pos = GetViewSpacePosition(input.texcoord, depth);
     float3 V = normalize(0.0f.xxx - pos);
+    
     float3 baseColorSpec = DiffuseTex.Sample(linearWrapSampler, input.texcoord).xyz;
-    float albedoSpec = DiffuseTex.Sample(linearWrapSampler, input.texcoord).a;
+    
     float4 normal = NormalTex.Sample(linearWrapSampler, input.texcoord);
     float3 normalWorld = normal.xyz * 2.0 - 1.0; 
     
-    float3 lighting = baseColorSpec *= 0.1;
+    float3 lighting = baseColorSpec * 0.15;
     
     [unroll]
     for (int i = 0; i < MAX_LIGHTS; i++)
@@ -48,12 +49,11 @@ float4 main(VSToPS input) : SV_Target
     
             float NDotL = max(0.0, dot(normalWorld, lightDir));
             float3 halfWay = normalize(V + lightDir);
-            float NDotH = max(0.0, dot(normalWorld, halfWay));
+            float NDotH = max(1e-5, dot(normalWorld, halfWay));
 
             float3 diffuse = max(NDotL, 0.0) * lights[i].lightColor;
             float3 specular = pow(max(NDotH, 0.0), 16.0) * lights[i].lightColor;
-
-            lighting += (diffuse + specular) * baseColorSpec * lights[i].spotPower;
+            lighting += (diffuse + specular) * lights[i].spotPower * baseColorSpec;
         }
     }
     return float4(lighting, 1.0);

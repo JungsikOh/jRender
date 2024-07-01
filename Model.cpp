@@ -184,13 +184,6 @@ void Model::Render(ComPtr<ID3D11DeviceContext> &context) {
             context->PSSetShaderResources(0, UINT(resViews.size()),
                                           resViews.data());
 
-            // vector<ID3D11Buffer *> bufferPointers = {
-            //     mesh->vertexBuffer.Get(), m_instancedConstsGPU.Get()};
-            // UINT strides[2] = {mesh->strides, sizeof(InstancedConsts)};
-            // UINT offsets[2] = {0, 0};
-            // context->IASetVertexBuffers(0, 2, bufferPointers.data(), strides,
-            //                             offsets);
-
             context->IASetVertexBuffers(0, 1, mesh->vertexBuffer.GetAddressOf(),
                                         &mesh->strides, &mesh->offsets);
             context->IASetIndexBuffer(mesh->indexBuffer.Get(),
@@ -202,6 +195,15 @@ void Model::Render(ComPtr<ID3D11DeviceContext> &context) {
                                               0, 0, 0);
         }
     }
+}
+
+void Model::RenderScreen(ComPtr<ID3D11DeviceContext>& context) {
+    ID3D11Buffer *nullBuffer = NULL;
+    UINT stride = 0;
+    UINT offset = 0;
+
+    context->IASetVertexBuffers(0, 1, &nullBuffer, &stride, &offset);
+    context->Draw(6, 0);
 }
 
 void Model::RenderNormals(ComPtr<ID3D11DeviceContext> &context) {

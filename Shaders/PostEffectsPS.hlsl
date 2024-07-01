@@ -1,7 +1,9 @@
 #include "Common.hlsli"
 
-Texture2D renderTex : register(t5);
-Texture2D depthOnlyTex : register(t6);
+Texture2D RenderTex : register(t5);
+Texture2D DepthOnlyTex : register(t6);
+Texture2D CubeMapTex : register(t7);
+Texture2D CubeMapStencilTex : register(t8);
 
 cbuffer PostEffectsConstants : register(b2)
 {
@@ -55,7 +57,7 @@ float LinearizeDepth(float2 texcoord)
     posProj.xy = texcoord * 2.0 - 1.0;
     posProj.y *= -1;
     //posProj.z = depthOnlyTex.Sample(linearClampSampler, texcoord).r;
-    posProj.z = depthOnlyTex.Sample(linearClampSampler, texcoord).r;
+    posProj.z = DepthOnlyTex.Sample(linearClampSampler, texcoord).r;
     posProj.w = 1.0;
 
     // ProjectSpace -> ViewSpace
@@ -76,7 +78,7 @@ float4 TextcoordToView(float2 texcoord)
     posProj.xy = texcoord * 2.0 - 1.0;
     posProj.y *= -1;
     //posProj.z = depthOnlyTex.Sample(linearClampSampler, texcoord).r;
-    posProj.z = depthOnlyTex.Sample(linearClampSampler, texcoord).r;
+    posProj.z = DepthOnlyTex.Sample(linearClampSampler, texcoord).r;
     posProj.w = 1.0;
 
     // ProjectSpace -> ViewSpace
@@ -88,7 +90,11 @@ float4 TextcoordToView(float2 texcoord)
 
 float4 main(VSToPS input) : SV_Target0
 {
-    float3 col = renderTex.Sample(linearClampSampler, input.texcoord).rgb;
+    float3 renderColor = RenderTex.Sample(linearClampSampler, input.texcoord).rgb;
+    float3 cubeMapColor = CubeMapTex.Sample(linearClampSampler, input.texcoord).rgb;
+    float3 cubeMapStencil = CubeMapStencilTex.Sample(linearClampSampler, input.texcoord).rgb;
+    
+    float3 col = lerp(cubeMapColor, renderColor, cubeMapStencil);
     float gammaCollection = 1.0 / gammaScale;
     float3 mapped = float3(1, 1, 1) - exp(-col * exposure);
     col = pow(mapped, gammaCollection);
@@ -96,7 +102,7 @@ float4 main(VSToPS input) : SV_Target0
     
     if (isEyeAdaptationEnabled)
     {
-        float3 luminescence = renderTex.Sample(linearClampSampler, input.texcoord).rgb;
+        float3 luminescence = RenderTex.Sample(linearClampSampler, input.texcoord).rgb;
         const float lum = 0.2126f * luminescence.r + 0.7152f * luminescence.g + 0.0722f * luminescence.b;
         const float adjSpeed = 0.05f;
         luminescence = lerp(luminescence, 0.5f / lum * exposure, adjSpeed);
@@ -117,7 +123,7 @@ float4 main(VSToPS input) : SV_Target0
         float3 sampleTex[9];
         for (int i = 0; i < 9; i++)
         {
-            sampleTex[i] = renderTex.Sample(linearClampSampler, input.texcoord + offsets[i]).rgb;
+            sampleTex[i] = RenderTex.Sample(linearClampSampler, input.texcoord + offsets[i]).rgb;
         }
     
         for (int i = 0; i < 9; i++)
