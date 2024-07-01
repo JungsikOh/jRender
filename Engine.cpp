@@ -34,6 +34,21 @@ bool Engine::Initialize() {
             make_shared<Model>(m_device, m_context, vector{screenBox}, 0);
     }
 
+    // 렌더 패스 그리기용 박스       
+    {
+        MeshData screenSquare = GeometryGenerator::MakeSquare(0.2f);
+        for (int i = 0; i < 3; i++) {
+            m_screenRenderPass[i] = make_shared<Model>(m_device, m_context,
+                                                       vector{screenSquare}, 0);
+            m_screenRenderPass[i]->UpdateWorldRow(Matrix::CreateTranslation(
+                Vector3(-0.75f, 0.7f - (0.4f * (float)i), 0.0f)));
+        }
+
+        for (int i = 0; i < 3; i++) {
+            m_screenRenderPass[i]->UpdateConstantBuffers(m_device, m_context);
+        } 
+    }
+
     // Skybox object
     {
         MeshData skyBoxMesh = GeometryGenerator::MakeBox(25.0f);
@@ -52,10 +67,10 @@ bool Engine::Initialize() {
     {
         MeshData ground = GeometryGenerator::MakeBox(2.0f, true);
         // ground.albedoTextureFilename = "Assets/ground.jpg";
-        ground.albedoTextureFilename =
-            "Assets/Bricks075A/Bricks075A_1K-JPG_Color.jpg";
-        ground.normalTextureFilename =
-            "Assets/Bricks075A/Bricks075A_1K-JPG_NormalDX.jpg";
+        // ground.albedoTextureFilename =
+        //   "Assets/Bricks075A/Bricks075A_1K-JPG_Color.jpg";
+        // ground.normalTextureFilename =
+        //   "Assets/Bricks075A/Bricks075A_1K-JPG_NormalDX.jpg";
 
         std::reverse(ground.indices.begin(), ground.indices.end());
         m_ground[0] =
@@ -67,7 +82,6 @@ bool Engine::Initialize() {
             Vector3(0.4f, 0.5f, 0.2f);
 
         m_ground[0]->m_castShadow = false;
-        m_ground[0]->m_materialConstsCPU.useNormalMap = true;
         m_ground[0]->m_materialConstsCPU.invertNormalMapY = false;
 
         m_basicList.push_back(m_ground[0]);
@@ -76,22 +90,12 @@ bool Engine::Initialize() {
         m_ground[1] =
             make_shared<Model>(m_device, m_context, vector{ground}, 0);
         m_ground[1]->UpdateWorldRow(
-            Matrix::CreateTranslation(Vector3(3.0f, 0.0f, 5.0f)));
+            Matrix::CreateTranslation(Vector3(0.0f, 0.0f, 5.0f)));
         m_ground[1]->m_materialConstsCPU.albedoFactor =
             Vector3(0.1f, 0.1f, 0.3f);
-        m_ground[1]->m_castShadow = true;
+        m_ground[1]->m_castShadow = false;
 
         m_basicList.push_back(m_ground[1]);
-
-        // m_ground[2] = make_shared<Model>(m_device, m_context,
-        // vector{ground}); m_ground[2]->UpdateWorldRow(
-        //     Matrix::CreateRotationY(XMConvertToRadians(90.0f)) *
-        //     Matrix::CreateTranslation(Vector3(5.0f, 0.0f, 0.0f)));
-        // m_ground[2]->m_materialConstsCPU.albedoFactor =
-        //     Vector3(0.1f, 0.1f, 0.3f);
-        // m_ground[2]->m_castShadow = false;
-
-        // m_basicList.push_back(m_ground[2]);
     }
 
     // Main Object
@@ -410,6 +414,8 @@ void Engine::Render() {
                              Graphics::sampleStates.data());
     m_context->PSSetSamplers(0, UINT(Graphics::sampleStates.size()),
                              Graphics::sampleStates.data());
+    const float clearColor[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+
     if (false) {
         // for cubemap texture
         vector<ID3D11ShaderResourceView *> commonSRVs = {
@@ -418,7 +424,6 @@ void Engine::Render() {
         m_context->PSSetShaderResources(10, UINT(commonSRVs.size()),
                                         commonSRVs.data());
 
-        const float clearColor[4] = {0.0f, 0.0f, 0.0f, 1.0f};
         vector<ID3D11RenderTargetView *> RTVs = {m_resolvedRTV.Get()};
 
         AppBase::SetPipelineState(Graphics::depthOnlyPSO);
@@ -450,7 +455,7 @@ void Engine::Render() {
                         frag->Render(m_context);
                 }
             }
-        } 
+        }
         AppBase::SetPipelineState(Graphics::shadowCubeMapPSO);
         AppBase::SetGlobalConsts(m_shadowGlobalConstsGPU[2]);
         m_context->GSSetConstantBuffers(
@@ -494,28 +499,39 @@ void Engine::Render() {
         AppBase::SetGlobalConsts(m_globalConstsGPU);
         m_skybox->Render(m_context);
     }
+    if (true) {
+        AppBase::SetPipelineState(Graphics::gBufferPSO);
+        AppBase::SetGlobalConsts(m_globalConstsGPU);
+        m_gBuffer.PreRender(m_context);
+        for (auto &i : m_basicList) {
+            i->Render(m_context);
+        }
+    }
+    // m_gBuffer.PostRender(m_context);
 
-    AppBase::SetPipelineState(Graphics::gBufferPSO);
-    AppBase::SetGlobalConsts(m_globalConstsGPU);
-    m_gBuffer.PreRender(m_context);
-    for (auto &i : m_basicList) { 
-        i->Render(m_context);
-    }  
-
-    // Post-Processing  
+    // Post-Processing
+    m_context->ClearRenderTargetView(m_backBufferRTV.Get(), clearColor);
     m_context->OMSetRenderTargets(1, m_backBufferRTV.GetAddressOf(), NULL);
+
     AppBase::SetPipelineState(Graphics::postEffectsPSO);
-    AppBase::SetGlobalConsts(m_globalConstsGPU);
-    /*vector<ID3D11ShaderResourceView *> SRVs = {m_resolvedSRV.Get(),
-                                                     m_depthOnlySRV.Get()};*/
+    AppBase::SetGlobalConsts(m_globalConstsGPU); 
     vector<ID3D11ShaderResourceView *> SRVs = {m_gBuffer.GetColorView(),
                                                m_gBuffer.GetNormalView(),
                                                m_gBuffer.GetDepthView()};
+    // vector<ID3D11ShaderResourceView *> SRVs = {m_resolvedSRV.Get(),
+    //                                            m_depthOnlySRV.Get()};
 
-    //m_context->PSSetConstantBuffers(2, 1,
-    //                                m_postEffectsConstsGPU.GetAddressOf()); 
+    // m_context->PSSetConstantBuffers(2, 1,
+    //                                 m_postEffectsConstsGPU.GetAddressOf());
     m_context->PSSetShaderResources(5, UINT(SRVs.size()), SRVs.data());
     m_screenSquare->Render(m_context);
+
+    AppBase::SetPipelineState(Graphics::renderPassPSO);
+    AppBase::SetGlobalConsts(m_globalConstsGPU);
+    for (int i = 0; i < 3; i++) {
+        m_context->PSSetShaderResources(5, 1, &SRVs[i]);
+        m_screenRenderPass[i]->Render(m_context);
+    }
 }
 
 void Engine::UpdateGUI() {

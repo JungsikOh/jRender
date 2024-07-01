@@ -11,6 +11,9 @@
     <Filter Include="Engine">
       <UniqueIdentifier>{5a033cb4-3fb7-42e7-b09f-3e50e22fbcfe}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders\RenderPass">
+      <UniqueIdentifier>{e4dc014f-9999-4179-a927-b9dab38af24b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AppBase.cpp">
@@ -137,11 +140,14 @@
     <FxCompile Include="Shaders\GBufferVS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="Shaders\DeferredLighting.hlsl">
+    <FxCompile Include="Shaders\DeferredLightingPS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
     <FxCompile Include="Shaders\GBufferPS.hlsl">
       <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\RenderPass\RenderPassPS.hlsl">
+      <Filter>Shaders\RenderPass</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

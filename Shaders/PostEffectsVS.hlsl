@@ -19,6 +19,7 @@ VSToPS main(VertexShaderInput input)
 {
     VSToPS output;
     output.pos = float4(input.posModel, 1.0);
+    output.pos = mul(output.pos, world);
     output.texcoord = input.texcoord;
     return output;
 }

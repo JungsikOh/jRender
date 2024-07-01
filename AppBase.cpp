@@ -378,15 +378,15 @@ void AppBase::SetShadowViewport() {
     shadowViewport.MaxDepth = 1.0f;
 
     m_context->RSSetViewports(1, &shadowViewport);
-}
+}                  
 
 void AppBase::SetGlobalConsts(ComPtr<ID3D11Buffer> &globalConstsGPU) {
     // 쉐이더와 일관성 유지 register(b1)
     m_context->VSSetConstantBuffers(1, 1, globalConstsGPU.GetAddressOf());
     m_context->PSSetConstantBuffers(1, 1, globalConstsGPU.GetAddressOf());
     m_context->GSSetConstantBuffers(1, 1, globalConstsGPU.GetAddressOf());
-}
-
+} 
+  
 void AppBase::SetPipelineState(const GraphicsPSO &pso) {
     m_context->VSSetShader(pso.m_vertexShader.Get(), 0, 0);
     m_context->PSSetShader(pso.m_pixelShader.Get(), 0, 0);

@@ -66,7 +66,7 @@ HRESULT GBuffer::Init(ComPtr<ID3D11Device> &g_pDevice, UINT width, UINT height) 
 
     // Allocate the base color with specular intensity target
     dtd.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
-    dtd.Format = basicColorTextureFormat;
+    dtd.Format = basicColorTextureFormat; 
     ThrowIfFailed(
         g_pDevice->CreateTexture2D(&dtd, NULL, &m_colorSpecIntensityTex));
 
@@ -172,10 +172,10 @@ void GBuffer::PreRender(ComPtr<ID3D11DeviceContext>& context) {
     context->ClearRenderTargetView(m_colorSpecIntensityRTV, clearColor);
     context->ClearRenderTargetView(m_normalRTV, clearColor);
     context->ClearRenderTargetView(m_specPowerRTV, clearColor);
-
-    ID3D11RenderTargetView *RTVs[3] = {m_colorSpecIntensityRTV, m_normalRTV,
-                                     m_specPowerRTV}; 
-    context->OMSetRenderTargets(3, RTVs, m_depthStencilDSV);
+     
+    ID3D11RenderTargetView *RTVs[2] = {m_colorSpecIntensityRTV, m_normalRTV,
+                                     }; 
+    context->OMSetRenderTargets(2, RTVs, m_depthStencilDSV);
     context->OMSetDepthStencilState(m_depthStencilState, 1);
 }
 

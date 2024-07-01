@@ -145,7 +145,7 @@ PixelShaderOutput main(PixelShaderInput input)
     
     [unroll]
     for (int i = 0; i < MAX_LIGHTS; i++)
-    {
+    { 
         if (lights[i].type)
         {
             float3 ambient = 0.15 * albedoColor;

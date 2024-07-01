@@ -88,7 +88,7 @@ static float3 GetViewSpacePosition(float2 texcoord, float depth)
     clipSpaceLocation.y *= -1;
     clipSpaceLocation.z = depth;
     clipSpaceLocation.w = 1.0f;
-    float4 homogenousLocation = mul(clipSpaceLocation, invProj);
+    float4 homogenousLocation = mul(clipSpaceLocation, invViewProj);
     return homogenousLocation.xyz / homogenousLocation.w;
 }
 

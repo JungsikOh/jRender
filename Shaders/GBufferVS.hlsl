@@ -24,8 +24,13 @@ VSToPS main(VertexShaderInput input)
     float4 pos = mul(float4(input.posModel, 1.0), world);
     output.position = mul(pos, viewProj);
     output.texcoord = input.texcoord;
-    output.normalWorld = mul(float4(input.normalModel, 0.0), worldIT);
+    
+    float4 normal = float4(input.normalModel, 0.0f);
+    output.normalWorld = mul(normal, worldIT).xyz;
+    output.normalWorld = normalize(output.normalWorld);
+    
     output.tangentWorld = mul(float4(input.tangentModel, 0.0), world);
+    output.tangentWorld = normalize(output.tangentWorld);
 
     return output;
 }

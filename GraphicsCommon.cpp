@@ -54,6 +54,9 @@ ComPtr<ID3D11VertexShader> gBufferVS;
 ComPtr<ID3D11PixelShader> gBufferPS;
 ComPtr<ID3D11PixelShader> deferredLighting;
 
+// RenderPass
+ComPtr<ID3D11PixelShader> renderPassPS;
+
 // Input Layouts
 ComPtr<ID3D11InputLayout> basicIL;
 ComPtr<ID3D11InputLayout> instancedIL;
@@ -80,6 +83,7 @@ GraphicsPSO shadowCubeMapPSO;
 GraphicsPSO postEffectsPSO;
 GraphicsPSO postProcessingPSO;
 GraphicsPSO gBufferPSO;
+GraphicsPSO renderPassPSO;
 
 } // namespace Graphics
 
@@ -286,37 +290,40 @@ void Graphics::InitShaders(ComPtr<ID3D11Device> &device) {
          D3D11_INPUT_PER_VERTEX_DATA, 0},
     };
 
-    D3D11Utils::CreateVertexShaderAndInputLayout(device, L"Shaders/BasicVS.hlsl",
-                                                 basicIEs, basicVS, basicIL);
+    D3D11Utils::CreateVertexShaderAndInputLayout(
+        device, L"Shaders/BasicVS.hlsl", basicIEs, basicVS, basicIL);
     // D3D11Utils::CreateVertexShaderAndInputLayout(device, L"NormalVS.hlsl",
     //                                              basicIEs, normalVS,
     //                                              basicIL);
     // D3D11Utils::CreateVertexShaderAndInputLayout(
     //     device, L"SamplingVS.hlsl", samplingIED, samplingVS, samplingIL);
-    D3D11Utils::CreateVertexShaderAndInputLayout(device, L"Shaders/SkyboxVS.hlsl",
-                                                 skyboxIE, skyboxVS, skyboxIL);
+    D3D11Utils::CreateVertexShaderAndInputLayout(
+        device, L"Shaders/SkyboxVS.hlsl", skyboxIE, skyboxVS, skyboxIL);
     D3D11Utils::CreateVertexShaderAndInputLayout(
         device, L"Shaders/DepthOnlyVS.hlsl", skyboxIE, depthOnlyVS, skyboxIL);
     D3D11Utils::CreateVertexShaderAndInputLayout(
-        device, L"Shaders/ShadowCubeMapVS.hlsl", skyboxIE, shadowCubeMapVS, skyboxIL);
+        device, L"Shaders/ShadowCubeMapVS.hlsl", skyboxIE, shadowCubeMapVS,
+        skyboxIL);
     D3D11Utils::CreateVertexShaderAndInputLayout(
-        device, L"Shaders/PostEffectsVS.hlsl", basicIEs, postEffectsVS, skyboxIL);
+        device, L"Shaders/PostEffectsVS.hlsl", basicIEs, postEffectsVS,
+        skyboxIL);
     D3D11Utils::CreateVertexShaderAndInputLayout(
         device, L"Shaders/GBufferVS.hlsl", basicIEs, gBufferVS, basicIL);
 
     D3D11Utils::CreatePixelShader(device, L"Shaders/BasicPS.hlsl", basicPS);
     // D3D11Utils::CreatePixelShader(device, L"NormalPS.hlsl", normalPS);
     D3D11Utils::CreatePixelShader(device, L"Shaders/SkyboxPS.hlsl", skyboxPS);
-    // D3D11Utils::CreatePixelShader(device, L"CombinePS.hlsl", combinePS);
-    // D3D11Utils::CreatePixelShader(device, L"BloomDownPS.hlsl", bloomDownPS);
-    // D3D11Utils::CreatePixelShader(device, L"BloomUpPS.hlsl", bloomUpPS);
-    D3D11Utils::CreatePixelShader(device, L"Shaders/DepthOnlyPS.hlsl", depthOnlyPS);
+    D3D11Utils::CreatePixelShader(device, L"Shaders/DepthOnlyPS.hlsl",
+                                  depthOnlyPS);
     D3D11Utils::CreatePixelShader(device, L"Shaders/ShadowCubeMapPS.hlsl",
                                   shadowCubeMapPS);
-    D3D11Utils::CreatePixelShader(device, L"Shaders/PostEffectsPS.hlsl", postEffectsPS);
+    D3D11Utils::CreatePixelShader(device, L"Shaders/PostEffectsPS.hlsl",
+                                  postEffectsPS);
     D3D11Utils::CreatePixelShader(device, L"Shaders/GBufferPS.hlsl", gBufferPS);
-    D3D11Utils::CreatePixelShader(device, L"Shaders/DeferredLighting.hlsl",
+    D3D11Utils::CreatePixelShader(device, L"Shaders/DeferredLightingPS.hlsl",
                                   deferredLighting);
+
+    D3D11Utils::CreatePixelShader(device, L"Shaders/RenderPass/RenderPassPS.hlsl", renderPassPS);
 
     // D3D11Utils::CreateGeometryShader(device, L"NormalGS.hlsl", normalGS);
     D3D11Utils::CreateGeometryShader(device, L"Shaders/ShadowCubeMapGS.hlsl",
@@ -425,6 +432,11 @@ void Graphics::InitPipelineStates(ComPtr<ID3D11Device> &device) {
     gBufferPSO = defaultSolidPSO;
     gBufferPSO.m_vertexShader = gBufferVS;
     gBufferPSO.m_pixelShader = gBufferPS;
+
+    // RenderPassPSO
+    renderPassPSO = postEffectsPSO;
+    renderPassPSO.m_vertexShader = postEffectsVS;
+    renderPassPSO.m_pixelShader = renderPassPS;
 }
 
 void Graphics::ShutdownStates() {

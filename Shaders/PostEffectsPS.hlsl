@@ -1,7 +1,7 @@
 #include "Common.hlsli"
 
-Texture2D renderTex : register(t25);
-Texture2D depthOnlyTex : register(t26);
+Texture2D renderTex : register(t5);
+Texture2D depthOnlyTex : register(t6);
 
 cbuffer PostEffectsConstants : register(b2)
 {
