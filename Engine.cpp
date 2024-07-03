@@ -3,6 +3,7 @@
 #include <DirectXCollision.h> // 구와 광선 충돌 계산에 사용
 #include <directxtk/DDSTextureLoader.h>
 #include <directxtk/SimpleMath.h>
+#include <random>
 #include <tuple>
 #include <vector>
 
@@ -37,14 +38,14 @@ bool Engine::Initialize() {
     // 렌더 패스 그리기용 박스
     {
         MeshData screenSquare = GeometryGenerator::MakeSquare(0.2f);
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < 4; i++) {
             m_screenRenderPass[i] = make_shared<Model>(m_device, m_context,
                                                        vector{screenSquare}, 0);
             m_screenRenderPass[i]->UpdateWorldRow(Matrix::CreateTranslation(
                 Vector3(-0.75f, 0.7f - (0.4f * (float)i), 0.0f)));
         }
 
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < 4; i++) {
             m_screenRenderPass[i]->UpdateConstantBuffers(m_device, m_context);
         }
     }
@@ -65,37 +66,38 @@ bool Engine::Initialize() {
 
     // 바닥 오브젝트
     {
-        MeshData ground = GeometryGenerator::MakeBox(2.0f, true);
-        // ground.albedoTextureFilename = "Assets/ground.jpg";
-        // ground.albedoTextureFilename =
-        //   "Assets/Bricks075A/Bricks075A_1K-JPG_Color.jpg";
-        // ground.normalTextureFilename =
-        //   "Assets/Bricks075A/Bricks075A_1K-JPG_NormalDX.jpg";
+        MeshData box = GeometryGenerator::MakeBox(2.0f, false);
+        MeshData ground = GeometryGenerator::MakeSquare(4.0f);
+        ground.albedoTextureFilename =
+            "Assets/Bricks075A/Bricks075A_1K-JPG_Color.jpg";
+        ground.normalTextureFilename =
+            "Assets/Bricks075A/Bricks075A_1K-JPG_NormalDX.jpg";
 
-        std::reverse(ground.indices.begin(), ground.indices.end());
         m_ground[0] =
             make_shared<Model>(m_device, m_context, vector{ground}, 0);
         m_ground[0]->UpdateWorldRow(
-            // Matrix::CreateRotationX(1.0f / 2.0f * 3.141592f) *
-            Matrix::CreateTranslation(Vector3(0.0f, 1.0f, 0.0f)));
+            Matrix::CreateRotationX(1.0f / 2.0f * 3.141592f) *
+            Matrix::CreateTranslation(Vector3(0.0f, -2.5f, 0.0f)));
         m_ground[0]->m_materialConstsCPU.albedoFactor =
             Vector3(0.4f, 0.5f, 0.2f);
 
-        m_ground[0]->m_castShadow = false;
-        m_ground[0]->m_materialConstsCPU.invertNormalMapY = false;
-
         m_basicList.push_back(m_ground[0]);
 
-        std::reverse(ground.indices.begin(), ground.indices.end());
-        m_ground[1] =
-            make_shared<Model>(m_device, m_context, vector{ground}, 0);
+        m_ground[1] = make_shared<Model>(m_device, m_context, vector{box}, 0);
         m_ground[1]->UpdateWorldRow(
             Matrix::CreateTranslation(Vector3(0.0f, 0.0f, 5.0f)));
         m_ground[1]->m_materialConstsCPU.albedoFactor =
             Vector3(0.1f, 0.1f, 0.3f);
-        m_ground[1]->m_castShadow = false;
 
         m_basicList.push_back(m_ground[1]);
+
+        m_ground[2] = make_shared<Model>(m_device, m_context, vector{box}, 0);
+        m_ground[2]->UpdateWorldRow(
+            Matrix::CreateTranslation(Vector3(5.0f, 0.0f, 0.0f)));
+        m_ground[2]->m_materialConstsCPU.albedoFactor =
+            Vector3(0.8f, 0.1f, 0.3f);  
+
+        m_basicList.push_back(m_ground[2]);
     }
 
     // Main Object
@@ -117,7 +119,7 @@ bool Engine::Initialize() {
         m_mainObj->UpdateWorldRow(Matrix::CreateTranslation(center));
         m_mainObj->m_castShadow = true;
 
-        for (int i = 0; i < 2; i++) {
+        for (int i = 0; i < 2; i++) {          
             m_mainObj->m_instancedConstsCPU.instanceMat[i] =
                 Vector3(-1.0f * 0.8f * (float)i, 1.0f * 0.8f * (float)i,
                         1.0f * 0.5f * (float)i);
@@ -185,7 +187,7 @@ bool Engine::Initialize() {
             m_lightSphere[i]->UpdateWorldRow(Matrix::CreateTranslation(
                 m_globalConstsCPU.lights[i].position));
             m_lightSphere[i]->m_materialConstsCPU.albedoFactor =
-                Vector3(1.0f, 1.0f, 1.0f);
+                m_globalConstsCPU.lights[i].lightColor;
             m_lightSphere[i]->m_materialConstsCPU.emissionFactor =
                 Vector3(1.0f, 0.0f, 0.0f);
             m_lightSphere[i]->m_castShadow = false;
@@ -208,7 +210,7 @@ void Engine::Update(float dt) {
     const Matrix viewRow = m_camera.GetViewRow();
     const Matrix projRow = m_camera.GetProjRow();
 
-    // Update Global ConstantBuffer 
+    // Update Global ConstantBuffer
     AppBase::UpdateGlobalConstants(eyeWorld, viewRow, projRow);
 
     // 조명 시점 그리기
@@ -222,7 +224,7 @@ void Engine::Update(float dt) {
             // 수정해줘야한다.
             if (abs(up.Dot(light.direction) + 1.0f) < 1e-5)
                 up = Vector3(1.0f, 0.0f, 0.0f);
-             
+
             // https://learn.microsoft.com/ko-kr/windows/win32/api/directxmath/nf-directxmath-xmmatrixperspectivefovlh
             Matrix lightProjRow = XMMatrixPerspectiveFovLH(
                 XMConvertToRadians(120.0f), 1.0f, 0.01f, 25.0f);
@@ -497,44 +499,60 @@ void Engine::Render() {
             i->Render(m_context);
         }
     }
-    m_context->ClearRenderTargetView(m_cubeMapRTV.Get(), clearColor);
+    // Cubemap을 위한 stencil 모양 찍기 및 나머지 부분에다가 큐브맵 그리기
     m_context->ClearDepthStencilView(m_depthStencilView.Get(),
                                      D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
                                      1.0f, 0);
-    m_context->OMSetRenderTargets(1, m_cubeMapRTV.GetAddressOf(),
-                                  m_depthStencilView.Get());
-    AppBase::SetPipelineState(Graphics::stencilMaskPSO);
-    for (auto &i : m_basicList) {
-        i->Render(m_context);
-    }
-    m_context->ClearRenderTargetView(m_cubeMapStencilRTV.Get(), clearColor);
-    m_context->ClearDepthStencilView(m_depthStencilView.Get(),
-                                     D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
-                                     1.0f, 0);
-    m_context->OMSetRenderTargets(1, m_cubeMapStencilRTV.GetAddressOf(),
-                                  m_depthStencilView.Get());
+    m_context->OMSetRenderTargets(0, NULL, m_depthStencilView.Get());
     AppBase::SetPipelineState(Graphics::stencilMaskPSO);
     for (auto &i : m_basicList) {
         i->Render(m_context);
     }
     m_context->ClearRenderTargetView(m_cubeMapRTV.Get(), clearColor);
-    m_context->ClearDepthStencilView(m_depthStencilView.Get(),
-                                     D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
-                                     1.0f, 0);
     m_context->OMSetRenderTargets(1, m_cubeMapRTV.GetAddressOf(),
                                   m_depthStencilView.Get());
-    AppBase::SetPipelineState(Graphics::skyboxSolidPSO);
+    AppBase::SetPipelineState(Graphics::reflectSolidPSO);
     m_skybox->Render(m_context);
 
+    // deferred lighting을 위한 G-Buffer 생성
     if (true) {
         AppBase::SetPipelineState(Graphics::gBufferPSO);
         m_gBuffer.PreRender(m_context);
         for (auto &i : m_basicList) {
             i->Render(m_context);
-        } 
-    }
-       
-    // Post-Processing 
+        }
+    }                           
+
+    vector<ID3D11ShaderResourceView *> deferredLightingSRVs = {
+        m_gBuffer.GetColorView(), m_gBuffer.GetNormalView(),
+        m_gBuffer.GetDepthView()};
+                     
+    // 1. SSAO texture 만들기
+    m_context->ClearDepthStencilView(m_depthStencilView.Get(),
+                                     D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
+                                     1.0f, 0);
+    m_context->ClearRenderTargetView(m_ssaoRTV.Get(), clearColor);
+    m_context->OMSetRenderTargets(1, m_ssaoRTV.GetAddressOf(),
+                                  m_depthStencilView.Get());
+    AppBase::SetPipelineState(Graphics::ssaoPSO);
+    m_context->PSGetConstantBuffers(2, 1, m_kernelSamplesGPU.GetAddressOf());
+    m_context->PSSetShaderResources(5, UINT(deferredLightingSRVs.size()),
+                                    deferredLightingSRVs.data());
+    m_context->PSSetShaderResources(8, 1, m_ssaoNoiseSRV.GetAddressOf());
+    m_screenSquare->Render(m_context);
+
+    // 2. SSAO texture Blur
+    m_context->ClearDepthStencilView(m_depthStencilView.Get(),
+                                     D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
+                                     1.0f, 0);
+    m_context->ClearRenderTargetView(m_ssaoBlurRTV.Get(), clearColor);
+    m_context->OMSetRenderTargets(1, m_ssaoBlurRTV.GetAddressOf(),
+                                  m_depthStencilView.Get());
+    AppBase::SetPipelineState(Graphics::ssaoBlurPSO);
+    m_context->PSSetShaderResources(5, 1, m_ssaoSRV.GetAddressOf());
+    m_screenSquare->Render(m_context);
+
+    // deferred lighting
     m_context->ClearRenderTargetView(m_resolvedRTV.Get(), clearColor);
     m_context->ClearDepthStencilView(m_depthStencilView.Get(),
                                      D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
@@ -543,21 +561,17 @@ void Engine::Render() {
                                   m_depthStencilView.Get());
 
     AppBase::SetPipelineState(Graphics::deferredLightingPSO);
-    vector<ID3D11ShaderResourceView *> deferredLightingSRVs = {
-        m_gBuffer.GetColorView(), m_gBuffer.GetNormalView(),
-        m_gBuffer.GetDepthView()};
     m_context->PSSetShaderResources(5, UINT(deferredLightingSRVs.size()),
                                     deferredLightingSRVs.data());
+    m_context->PSSetShaderResources(8, 1, m_ssaoBlurSRV.GetAddressOf());
     m_screenSquare->Render(m_context);
 
     m_context->ClearRenderTargetView(m_backBufferRTV.Get(), clearColor);
-    m_context->OMSetRenderTargets(1, m_backBufferRTV.GetAddressOf(),
-                                  NULL);    
+    m_context->OMSetRenderTargets(1, m_backBufferRTV.GetAddressOf(), NULL);
 
-    vector<ID3D11ShaderResourceView *> postEffectSRVs = {  
-        m_resolvedSRV.Get(), m_gBuffer.GetDepthView(), m_cubeMapSRV.Get(),
-        m_cubeMapStencilSRV.Get()};
-     
+    vector<ID3D11ShaderResourceView *> postEffectSRVs = {
+        m_resolvedSRV.Get(), m_gBuffer.GetDepthView(), m_cubeMapSRV.Get()};
+
     AppBase::SetPipelineState(Graphics::postEffectsPSO);
     AppBase::SetGlobalConsts(m_globalConstsGPU);
     m_context->PSSetConstantBuffers(2, 1,
@@ -573,6 +587,8 @@ void Engine::Render() {
         m_context->PSSetShaderResources(5, 1, &deferredLightingSRVs[i]);
         m_screenRenderPass[i]->Render(m_context);
     }
+    m_context->PSSetShaderResources(5, 1, m_ssaoBlurSRV.GetAddressOf());
+    m_screenRenderPass[3]->Render(m_context);
 }
 
 void Engine::UpdateGUI() {
@@ -591,8 +607,8 @@ void Engine::UpdateGUI() {
         flag += ImGui::CheckboxFlags("Edge Detection",
                                      &m_postEffectsConstsCPU.edge, 1);
         flag += ImGui::CheckboxFlags(
-            "Eye Adaptation", &m_postEffectsConstsCPU.isEyeAdaptationEnabled,
-            1);
+            "SSAO", &m_globalConstsCPU.SSAO,
+            1);    
         flag += ImGui::SliderFloat(
             "DepthScale", &m_postEffectsConstsCPU.depthScale, 1e-3, 1.0f);
         flag += ImGui::SliderFloat(
@@ -601,6 +617,7 @@ void Engine::UpdateGUI() {
             "FogStrength", &m_postEffectsConstsCPU.fogStrength, 0.0f, 10.0f);
         flag += ImGui::SliderFloat("Exposure", &m_postEffectsConstsCPU.exposure,
                                    0.0f, 10.0f);
+
         if (flag)
             D3D11Utils::UpdateBuffer(m_device, m_context,
                                      m_postEffectsConstsCPU,

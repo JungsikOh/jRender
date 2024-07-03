@@ -36,6 +36,8 @@ ComPtr<ID3D11VertexShader> normalVS;
 ComPtr<ID3D11VertexShader> depthOnlyVS;
 ComPtr<ID3D11VertexShader> shadowCubeMapVS;
 ComPtr<ID3D11VertexShader> postEffectsVS;
+ComPtr<ID3D11VertexShader> ssaoVS;
+ComPtr<ID3D11VertexShader> ssaoBlurVS;
 
 ComPtr<ID3D11PixelShader> basicPS;
 ComPtr<ID3D11PixelShader> skyboxPS;
@@ -46,6 +48,8 @@ ComPtr<ID3D11PixelShader> normalPS;
 ComPtr<ID3D11PixelShader> depthOnlyPS;
 ComPtr<ID3D11PixelShader> shadowCubeMapPS;
 ComPtr<ID3D11PixelShader> postEffectsPS;
+ComPtr<ID3D11PixelShader> ssaoPS;
+ComPtr<ID3D11PixelShader> ssaoBlurPS;
 
 ComPtr<ID3D11GeometryShader> normalGS;
 ComPtr<ID3D11GeometryShader> shadowCubeMapGS;
@@ -87,6 +91,8 @@ GraphicsPSO postEffectsPSO;
 GraphicsPSO postProcessingPSO;
 GraphicsPSO gBufferPSO;
 GraphicsPSO renderPassPSO;
+GraphicsPSO ssaoPSO;
+GraphicsPSO ssaoBlurPSO;
 
 } // namespace Graphics
 
@@ -261,8 +267,8 @@ void Graphics::InitDepthStencilStates(ComPtr<ID3D11Device> &device) {
     // 앞면에 대해서 어떻게 작동할지 설정
     dsDesc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
     dsDesc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
-    dsDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_REPLACE;
-    dsDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+    dsDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_REPLACE; // https://learn.microsoft.com/en-us/windows/win32/api/d3d11/ne-d3d11-d3d11_stencil_op
+    dsDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS; // 항상 통과
 
     ThrowIfFailed(
         device->CreateDepthStencilState(&dsDesc, maskDSS.GetAddressOf()));
@@ -275,10 +281,12 @@ void Graphics::InitDepthStencilStates(ComPtr<ID3D11Device> &device) {
     dsDesc.StencilEnable = true; // Stencil 사용
     dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
     dsDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL; // <- 주의
-    dsDesc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
-    dsDesc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
+    dsDesc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP; // stencil 실패
+    dsDesc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP; // stencil 성공 depth 실패 
     dsDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
-    dsDesc.FrontFace.StencilFunc = D3D11_COMPARISON_EQUAL;
+    dsDesc.FrontFace.StencilFunc =
+        D3D11_COMPARISON_EQUAL; // 여기가 중요! stencilRef랑 동일한 stencil
+                                // value인 경우에만 그릴 수 있도록함.
 
     ThrowIfFailed(
         device->CreateDepthStencilState(&dsDesc, drawMaskedDSS.GetAddressOf()));
@@ -336,10 +344,13 @@ void Graphics::InitShaders(ComPtr<ID3D11Device> &device) {
         device, L"Shaders/ShadowCubeMapVS.hlsl", skyboxIE, shadowCubeMapVS,
         skyboxIL);
     D3D11Utils::CreateVertexShaderAndInputLayout(
-        device, L"Shaders/PostEffectsVS.hlsl", skyboxIE, postEffectsVS,
-        samplingIL);
-    D3D11Utils::CreateVertexShaderAndInputLayout(
         device, L"Shaders/GBufferVS.hlsl", basicIEs, gBufferVS, basicIL);
+    D3D11Utils::CreateVertexShaderAndInputLayoutSum(
+        device, L"Shaders/PostEffects.hlsl", skyboxIE, postEffectsVS, skyboxIL);
+    D3D11Utils::CreateVertexShaderAndInputLayoutSum(
+        device, L"Shaders/SSAO.hlsl", skyboxIE, ssaoVS, skyboxIL);
+    D3D11Utils::CreateVertexShaderAndInputLayoutSum(
+        device, L"Shaders/SSAOBlur.hlsl", skyboxIE, ssaoBlurVS, skyboxIL);
 
     D3D11Utils::CreatePixelShader(device, L"Shaders/BasicPS.hlsl", basicPS);
     // D3D11Utils::CreatePixelShader(device, L"NormalPS.hlsl", normalPS);
@@ -348,11 +359,13 @@ void Graphics::InitShaders(ComPtr<ID3D11Device> &device) {
                                   depthOnlyPS);
     D3D11Utils::CreatePixelShader(device, L"Shaders/ShadowCubeMapPS.hlsl",
                                   shadowCubeMapPS);
-    D3D11Utils::CreatePixelShader(device, L"Shaders/PostEffectsPS.hlsl",
-                                  postEffectsPS);
     D3D11Utils::CreatePixelShader(device, L"Shaders/GBufferPS.hlsl", gBufferPS);
     D3D11Utils::CreatePixelShader(device, L"Shaders/DeferredLightingPS.hlsl",
                                   deferredLightingPS);
+    D3D11Utils::CreatePixelShaderSum(device, L"Shaders/PostEffects.hlsl",
+                                  postEffectsPS);
+    D3D11Utils::CreatePixelShaderSum(device, L"Shaders/SSAO.hlsl", ssaoPS);
+    D3D11Utils::CreatePixelShaderSum(device, L"Shaders/SSAOBlur.hlsl", ssaoBlurPS);
 
     D3D11Utils::CreatePixelShader(
         device, L"Shaders/RenderPass/RenderPassPS.hlsl", renderPassPS);
@@ -378,21 +391,21 @@ void Graphics::InitPipelineStates(ComPtr<ID3D11Device> &device) {
     defaultWirePSO.m_rasterizerState = wireRS;
 
     // stencilMarkPSO;
-     stencilMaskPSO = defaultSolidPSO;
-     stencilMaskPSO.m_depthStencilState = maskDSS;
-     stencilMaskPSO.m_stencilRef = 1;
-     stencilMaskPSO.m_vertexShader = depthOnlyVS;
-     stencilMaskPSO.m_pixelShader = depthOnlyPS;
+    stencilMaskPSO = defaultSolidPSO;
+    stencilMaskPSO.m_depthStencilState = maskDSS;
+    stencilMaskPSO.m_stencilRef = 1;
+    stencilMaskPSO.m_vertexShader = depthOnlyVS;
+    stencilMaskPSO.m_pixelShader = depthOnlyPS;
 
     // reflectSolidPSO: 반사되면 Winding 반대
-     reflectSolidPSO = defaultSolidPSO;
-     reflectSolidPSO.m_vertexShader = skyboxVS;
-     reflectSolidPSO.m_pixelShader = skyboxPS;
-     reflectSolidPSO.m_inputLayout = skyboxIL;
-     reflectSolidPSO.m_depthStencilState = drawMaskedDSS;
-     reflectSolidPSO.m_blendState = mirrorBS;
-     //reflectSolidPSO.m_rasterizerState = solidCCWRS; // 반시계
-     reflectSolidPSO.m_stencilRef = 0;
+    reflectSolidPSO = defaultSolidPSO;
+    reflectSolidPSO.m_vertexShader = skyboxVS;
+    reflectSolidPSO.m_pixelShader = skyboxPS;
+    reflectSolidPSO.m_inputLayout = skyboxIL;
+    reflectSolidPSO.m_depthStencilState = drawMaskedDSS;
+    // reflectSolidPSO.m_blendState = mirrorBS;
+    // reflectSolidPSO.m_rasterizerState = solidCCWRS; // 반시계
+    reflectSolidPSO.m_stencilRef = 0;
 
     //// reflectWirePSO: 반사되면 Winding 반대
     // reflectWirePSO = reflectSolidPSO;
@@ -460,15 +473,23 @@ void Graphics::InitPipelineStates(ComPtr<ID3D11Device> &device) {
     // DeferredLightingPSO
     deferredLightingPSO.m_vertexShader = postEffectsVS;
     deferredLightingPSO.m_pixelShader = deferredLightingPS;
-    deferredLightingPSO.m_inputLayout = samplingIL;
+    deferredLightingPSO.m_inputLayout = skyboxIL;
     deferredLightingPSO.m_rasterizerState = postProcessingRS;
-    
 
     // postEffectsPSO
     postEffectsPSO.m_vertexShader = postEffectsVS;
     postEffectsPSO.m_pixelShader = postEffectsPS;
-    postEffectsPSO.m_inputLayout = samplingIL;
+    postEffectsPSO.m_inputLayout = skyboxIL;
     postEffectsPSO.m_rasterizerState = postProcessingRS;
+
+    // ssaoPSO
+    ssaoPSO = postEffectsPSO;
+    ssaoPSO.m_vertexShader = ssaoVS;
+    ssaoPSO.m_pixelShader = ssaoPS;
+
+    ssaoBlurPSO = postEffectsPSO;
+    ssaoBlurPSO.m_vertexShader = ssaoBlurVS;
+    ssaoBlurPSO.m_pixelShader = ssaoBlurPS;
 
     // RenderPassPSO
     renderPassPSO = postEffectsPSO;

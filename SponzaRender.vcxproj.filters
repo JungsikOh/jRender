@@ -119,9 +119,6 @@
     <FxCompile Include="Shaders\DepthOnlyVS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="Shaders\PostEffectsPS.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
     <FxCompile Include="Shaders\PostEffectsVS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
@@ -148,6 +145,15 @@
     </FxCompile>
     <FxCompile Include="Shaders\RenderPass\RenderPassPS.hlsl">
       <Filter>Shaders\RenderPass</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\SSAO.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\PostEffects.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\SSAOBlur.hlsl">
+      <Filter>Shaders</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

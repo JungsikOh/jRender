@@ -251,7 +251,7 @@ void D3D11Utils::CreateVertexShaderAndInputLayoutSum(
     // shader's first name is "main"
     // D3D_COMPILE_STANDARD_FILE_INCLUDE : This can use "include" in shader
     HRESULT hr = D3DCompileFromFile(
-        filename.c_str(), 0, D3D_COMPILE_STANDARD_FILE_INCLUDE, "VSMain",
+        filename.c_str(), 0, D3D_COMPILE_STANDARD_FILE_INCLUDE, "VSmain",
         "vs_5_0", compileFlags, 0, &shaderBlob, &errorBlob);
 
     CheckResult(hr, errorBlob);
@@ -259,7 +259,7 @@ void D3D11Utils::CreateVertexShaderAndInputLayoutSum(
     device->CreateVertexShader(shaderBlob->GetBufferPointer(),
                                shaderBlob->GetBufferSize(), NULL,
                                &m_vertexShader);
-
+     
     device->CreateInputLayout(inputElements.data(), UINT(inputElements.size()),
                               shaderBlob->GetBufferPointer(),
                               shaderBlob->GetBufferSize(), &m_inputLayout);
@@ -374,7 +374,7 @@ void D3D11Utils::CreatePixelShaderSum(ComPtr<ID3D11Device> &device,
     // shader's first name is "main"
     // D3D_COMPILE_STANDARD_FILE_INCLUDE : This can use "include" in shader
     HRESULT hr = D3DCompileFromFile(
-        filename.c_str(), 0, D3D_COMPILE_STANDARD_FILE_INCLUDE, "PSMain",
+        filename.c_str(), 0, D3D_COMPILE_STANDARD_FILE_INCLUDE, "PSmain",
         "ps_5_0", compileFlags, 0, &shaderBlob, &errorBlob);
 
     CheckResult(hr, errorBlob.Get());

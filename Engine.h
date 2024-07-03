@@ -36,7 +36,7 @@ class Engine : public AppBase {
     shared_ptr<Model> m_screenSquare;
 
     // render pass
-    shared_ptr<Model> m_screenRenderPass[3];
+    shared_ptr<Model> m_screenRenderPass[4];
 
     BoundingSphere m_mainBoundingSphere; // 물체의 여러 조작을 위한 Bounding Sphere
 

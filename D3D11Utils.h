@@ -200,6 +200,35 @@ class D3D11Utils {
                        ComPtr<ID3D11Texture2D> &texture,
                        ComPtr<ID3D11ShaderResourceView> &textureResourceView);
 
+    static void CreateTexture2D(
+        ComPtr<ID3D11Device> &device,
+        const vector<Vector3> &textureConstData, ComPtr<ID3D11Texture2D> &texture,
+        ComPtr<ID3D11ShaderResourceView> &textureResourceView) {
+
+        D3D11_TEXTURE2D_DESC txtDesc;
+        ZeroMemory(&txtDesc, sizeof(txtDesc));
+        txtDesc.Width = 4;
+        txtDesc.Height = 4;
+        txtDesc.MipLevels = 1; // ¹Ó¸Ê ·¹º§ ÃÖ´ë
+        txtDesc.ArraySize = 1;
+        txtDesc.Format = DXGI_FORMAT_R32G32B32_FLOAT;
+        txtDesc.SampleDesc.Count = 1;
+        txtDesc.Usage = D3D11_USAGE_DEFAULT; // ½ºÅ×ÀÌÂ¡ ÅØ½ºÃç·ÎºÎÅÍ º¹»ç °¡´É
+        txtDesc.BindFlags =
+            D3D11_BIND_SHADER_RESOURCE;
+        txtDesc.MiscFlags = 0;
+        txtDesc.CPUAccessFlags = 0;
+
+        D3D11_SUBRESOURCE_DATA initData = {};
+        initData.pSysMem = textureConstData.data();
+        initData.SysMemPitch = txtDesc.Width * sizeof(Vector3);
+        initData.SysMemSlicePitch = 0;
+
+        ThrowIfFailed(device->CreateTexture2D(&txtDesc, &initData, texture.GetAddressOf()));
+        ThrowIfFailed(device->CreateShaderResourceView(
+            texture.Get(), NULL, textureResourceView.GetAddressOf()));
+    }
+
     static void CreateDDSTexture(ComPtr<ID3D11Device> &device,
                                  const wchar_t *filename, const bool isCubeMap,
                                  ComPtr<ID3D11ShaderResourceView> &texResView);

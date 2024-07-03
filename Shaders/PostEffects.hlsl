@@ -1,9 +1,32 @@
 #include "Common.hlsli"
 
+struct VSToPS
+{
+    float4 pos : SV_Position;
+    float2 texcoord : TEXCOORD0;
+};
+
+cbuffer MeshConstants : register(b0)
+{
+    matrix world;
+    matrix worldIT;
+    int useHeightMap;
+    float heightScale;
+    float2 dummy;
+};
+
+VSToPS VSmain(VertexShaderInput input)
+{
+    VSToPS output;
+    output.pos = float4(input.posModel, 1.0);
+    output.pos = mul(output.pos, world);
+    output.texcoord = input.texcoord;
+    return output;
+}
+
 Texture2D RenderTex : register(t5);
 Texture2D DepthOnlyTex : register(t6);
 Texture2D CubeMapTex : register(t7);
-Texture2D CubeMapStencilTex : register(t8);
 
 cbuffer PostEffectsConstants : register(b2)
 {
@@ -16,18 +39,12 @@ cbuffer PostEffectsConstants : register(b2)
     float exposure;
 }
 
-struct VSToPS
-{
-    float4 pos : SV_Position;
-    float2 texcoord : TEXCOORD0;
-};
-
 // Edge Detection
 const float offset = 1.0 / 300.0;
     
 static const float2 offsets[9] =
 {
-        float2(-offset, offset), // top-left
+    float2(-offset, offset), // top-left
         float2(0.0f, offset), // top-center
         float2(offset, offset), // top-right
         float2(-offset, 0.0f), // center-left
@@ -40,12 +57,10 @@ static const float2 offsets[9] =
 
 static const float kernel[9] =
 {
-          1, 1, 1,
+    1, 1, 1,
           1, -8, 1,
           1, 1, 1
 };
-    
-
 
 float LinearizeDepth(float2 texcoord)
 {
@@ -88,13 +103,12 @@ float4 TextcoordToView(float2 texcoord)
     return posView;
 }
 
-float4 main(VSToPS input) : SV_Target0
+float4 PSmain(VSToPS input) : SV_Target0
 {
     float3 renderColor = RenderTex.Sample(linearClampSampler, input.texcoord).rgb;
     float3 cubeMapColor = CubeMapTex.Sample(linearClampSampler, input.texcoord).rgb;
-    float3 cubeMapStencil = CubeMapStencilTex.Sample(linearClampSampler, input.texcoord).rgb;
     
-    float3 col = lerp(cubeMapColor, renderColor, cubeMapStencil);
+    float3 col = cubeMapColor + renderColor;
     float gammaCollection = 1.0 / gammaScale;
     float3 mapped = float3(1, 1, 1) - exp(-col * exposure);
     col = pow(mapped, gammaCollection);

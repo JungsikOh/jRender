@@ -33,6 +33,9 @@ extern ComPtr<ID3D11VertexShader> normalVS;
 extern ComPtr<ID3D11VertexShader> depthOnlyVS;
 extern ComPtr<ID3D11VertexShader> shadowCubeMapVS;
 extern ComPtr<ID3D11VertexShader> postEffectsVS;
+extern ComPtr<ID3D11VertexShader> ssaoVS;
+extern ComPtr<ID3D11VertexShader> ssaoBlurVS;
+
 extern ComPtr<ID3D11PixelShader> basicPS;
 extern ComPtr<ID3D11PixelShader> skyboxPS;
 extern ComPtr<ID3D11PixelShader> combinePS;
@@ -42,6 +45,9 @@ extern ComPtr<ID3D11PixelShader> normalPS;
 extern ComPtr<ID3D11PixelShader> depthOnlyPS;
 extern ComPtr<ID3D11PixelShader> shadowCubeMapPS;
 extern ComPtr<ID3D11PixelShader> postEffectsPS;
+extern ComPtr<ID3D11PixelShader> ssaoPS;
+extern ComPtr<ID3D11PixelShader> ssaoBlurPS;
+
 extern ComPtr<ID3D11GeometryShader> normalGS;
 extern ComPtr<ID3D11GeometryShader> shadowCubeMapGS;
 
@@ -86,6 +92,8 @@ extern GraphicsPSO postEffectsPSO;
 extern GraphicsPSO postProcessingPSO;
 extern GraphicsPSO gBufferPSO;
 extern GraphicsPSO renderPassPSO;
+extern GraphicsPSO ssaoPSO;
+extern GraphicsPSO ssaoBlurPSO;
 
 void InitCommonStates(ComPtr<ID3D11Device> &device);
 void ShutdownStates();

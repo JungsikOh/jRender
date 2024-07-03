@@ -11,6 +11,8 @@
 #define LIGHT_SPOT 0x04
 #define LIGHT_SHADOW 0x10
 
+#define MAX_SAMPLES 64
+
 namespace jRenderer {
 
 using DirectX::SimpleMath::Matrix;
@@ -104,6 +106,9 @@ __declspec(align(256)) struct GlobalConstants {
     float envLodBias = 0.0f; // envMap LodBias
     float lodBias = 2.0f;    // Others LodBias
     float dummy2 = 0.0f;
+    
+    int SSAO = 0;
+    float dummy3[3];
 
     Light lights[MAX_LIGHTS];
 };
@@ -128,6 +133,11 @@ __declspec(align(256)) struct PostEffectsConstants {
     float gammaScale = 1.0f;
     float fogStrength = 0.0f;
     float exposure = 1.0f;
+};
+
+struct Vector3kernelSampleConstants {
+    Vector3 samples[MAX_SAMPLES];
+    float dummy[MAX_SAMPLES];
 };
 
 } // namespace jRenderer

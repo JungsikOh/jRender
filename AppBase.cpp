@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <directxtk/SimpleMath.h>
+#include <random>
 
 #include "D3D11Utils.h"
 #include "GraphicsCommon.h"
@@ -483,6 +484,43 @@ void AppBase::CreateBuffers() {
     // G-Buffer
     ThrowIfFailed(m_gBuffer.Init(m_device, m_screenWidth, m_screenHeight));
 
+    // ssaoNoise
+    // 0 부터 1 까지 균등하게 나타나는 난수열을 생성하기 위해 균등 분포
+    std::uniform_real_distribution<float> randomFloats(0.0f, 1.0f);
+    std::default_random_engine generator;
+    std::vector<Vector3> ssaoNoise;
+    for (int i = 0; i < 16; i++) {
+        Vector3 tmp = Vector3(randomFloats(generator) * 2.0f - 1.0f,
+                              randomFloats(generator) * 2.0f - 1.0f, 0.0f);
+        ssaoNoise.push_back(tmp);
+    }
+    Vector3kernelSampleConstants kernel;
+    for (UINT i = 0; i < MAX_SAMPLES; ++i) {
+        Vector3 _sample = Vector3(randomFloats(generator) * 2.0f - 1.0f,
+                                  randomFloats(generator) * 2.0f - 1.0f,
+                                  randomFloats(generator));
+        kernel.samples[i] = _sample;
+    }
+    D3D11Utils::CreateConstBuffer(m_device, kernel, m_kernelSamplesGPU);
+    D3D11Utils::CreateTexture2D(m_device, ssaoNoise, m_ssaoNoise,
+                                m_ssaoNoiseSRV);
+
+    // SSAO
+    ThrowIfFailed(
+        m_device->CreateTexture2D(&desc, NULL, m_ssaoTex.GetAddressOf()));
+    ThrowIfFailed(m_device->CreateRenderTargetView(m_ssaoTex.Get(), NULL,
+                                                   m_ssaoRTV.GetAddressOf()));
+    ThrowIfFailed(m_device->CreateShaderResourceView(m_ssaoTex.Get(), NULL,
+                                                     m_ssaoSRV.GetAddressOf()));
+
+    // SSAO Blur
+    ThrowIfFailed(
+        m_device->CreateTexture2D(&desc, NULL, m_ssaoBlurTex.GetAddressOf()));
+    ThrowIfFailed(m_device->CreateRenderTargetView(m_ssaoBlurTex.Get(), NULL,
+                                                   m_ssaoBlurRTV.GetAddressOf()));
+    ThrowIfFailed(m_device->CreateShaderResourceView(m_ssaoBlurTex.Get(), NULL,
+                                                     m_ssaoBlurSRV.GetAddressOf()));
+
     CreateDepthBuffers();
 }
 
@@ -596,6 +634,7 @@ void AppBase::CreateDepthBuffers() {
         m_depthOnlyBuffer.Get(), &srvDesc, m_depthOnlySRV.GetAddressOf()));
 
     // Shadow 전용
+    srvDesc.Format = DXGI_FORMAT_R32_FLOAT;
     for (int i = 0; i < MAX_LIGHTS; i++) {
         ThrowIfFailed(m_device->CreateShaderResourceView(
             m_shadowOnlyBuffers[i].Get(), &srvDesc,

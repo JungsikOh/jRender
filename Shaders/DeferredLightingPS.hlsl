@@ -9,6 +9,7 @@ Texture2D emissiveTex : register(t4);
 Texture2D DiffuseTex : register(t5);
 Texture2D NormalTex : register(t6);
 Texture2D<float> DepthTex : register(t7);
+Texture2D SSAOTex : register(t8);
 
 struct VSToPS
 {
@@ -29,16 +30,22 @@ float3 BlinnPhong(float NdotL, float NdotH, float3 diffuseColor, Light light)
 float4 main(VSToPS input) : SV_Target
 {
     // Unpack GBuffer
-    float depth = DepthTex.Sample(linearWrapSampler, input.texcoord);
-    float3 pos = GetViewSpacePosition(input.texcoord, depth);
-    float3 V = normalize(0.0f.xxx - pos);
+    float depth = DepthTex.Sample(linearClampSampler, input.texcoord);
+    float3 pos = GetWorldSpacePosition(input.texcoord, depth);
+    float3 viewDir = normalize(eyeWorld - pos);
     
-    float3 baseColorSpec = DiffuseTex.Sample(linearWrapSampler, input.texcoord).xyz;
+    float3 albedo = DiffuseTex.Sample(linearClampSampler, input.texcoord).xyz;
     
-    float4 normal = NormalTex.Sample(linearWrapSampler, input.texcoord);
-    float3 normalWorld = normal.xyz * 2.0 - 1.0; 
+    float4 normal = NormalTex.Sample(linearClampSampler, input.texcoord);
+    float3 normalWorld = normalize(normal.xyz * 2.0f - 1.0f);
     
-    float3 lighting = baseColorSpec * 0.15;
+    float ambientOcclusion = SSAOTex.Sample(linearClampSampler, input.texcoord).r;
+    
+    float3 lighting = 0.3f * albedo;
+    if (SSAO)
+    {
+        lighting = 0.3f * albedo * ambientOcclusion;
+    }
     
     [unroll]
     for (int i = 0; i < MAX_LIGHTS; i++)
@@ -46,14 +53,16 @@ float4 main(VSToPS input) : SV_Target
         if (lights[i].type)
         {
             float3 lightDir = normalize(lights[i].position - pos);
+            float distance = length(lights[i].position - pos);
+            float att = 1.0 / distance;
     
             float NDotL = max(0.0, dot(normalWorld, lightDir));
-            float3 halfWay = normalize(V + lightDir);
-            float NDotH = max(1e-5, dot(normalWorld, halfWay));
+            float3 halfWay = normalize(viewDir + lightDir);
+            float NDotH = max(0.0, dot(normalWorld, halfWay));
 
-            float3 diffuse = max(NDotL, 0.0) * lights[i].lightColor;
-            float3 specular = pow(max(NDotH, 0.0), 16.0) * lights[i].lightColor;
-            lighting += (diffuse + specular) * lights[i].spotPower * baseColorSpec;
+            float3 diffuse = max(NDotL, 0.0) * albedo * lights[i].lightColor * att;
+            float3 specular = pow(max(NDotH, 0.0), 8.0) * lights[i].lightColor * att;
+            lighting += (diffuse + specular) * lights[i].spotPower;
         }
     }
     return float4(lighting, 1.0);
