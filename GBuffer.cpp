@@ -21,7 +21,7 @@ HRESULT GBuffer::Init(ComPtr<ID3D11Device> &g_pDevice, UINT width, UINT height) 
     // Texture formats
     static const DXGI_FORMAT depthStencilTextureFormat = DXGI_FORMAT_R24G8_TYPELESS;
     static const DXGI_FORMAT basicColorTextureFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
-    static const DXGI_FORMAT normalTextureFormat = DXGI_FORMAT_R11G11B10_FLOAT;
+    static const DXGI_FORMAT normalTextureFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
     static const DXGI_FORMAT specPowTextureFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
 
     // Render View formats
@@ -30,7 +30,7 @@ HRESULT GBuffer::Init(ComPtr<ID3D11Device> &g_pDevice, UINT width, UINT height) 
     static const DXGI_FORMAT basicColorRenderViewFormat =
         DXGI_FORMAT_R8G8B8A8_UNORM;
     static const DXGI_FORMAT normalRenderViewFormat =
-        DXGI_FORMAT_R11G11B10_FLOAT;
+        DXGI_FORMAT_R8G8B8A8_UNORM;
     static const DXGI_FORMAT specPowRenderViewFormat =
         DXGI_FORMAT_R8G8B8A8_UNORM;
 
@@ -40,7 +40,7 @@ HRESULT GBuffer::Init(ComPtr<ID3D11Device> &g_pDevice, UINT width, UINT height) 
     static const DXGI_FORMAT basicColorResourceViewFormat =
         DXGI_FORMAT_R8G8B8A8_UNORM;
     static const DXGI_FORMAT normalResourceViewFormat =
-        DXGI_FORMAT_R11G11B10_FLOAT;
+        DXGI_FORMAT_R8G8B8A8_UNORM;
     static const DXGI_FORMAT specPowResourceViewFormat =
         DXGI_FORMAT_R8G8B8A8_UNORM;
 
@@ -171,9 +171,9 @@ void GBuffer::PreRender(ComPtr<ID3D11DeviceContext>& context) {
     context->ClearRenderTargetView(m_normalRTV, clearColor);
     context->ClearRenderTargetView(m_specPowerRTV, clearColor);
      
-    ID3D11RenderTargetView *RTVs[2] = {m_colorSpecIntensityRTV, m_normalRTV,
-                                     }; 
-    context->OMSetRenderTargets(2, RTVs, m_depthStencilDSV);
+    ID3D11RenderTargetView *RTVs[3] = {m_colorSpecIntensityRTV, m_normalRTV,
+                                     m_specPowerRTV}; 
+    context->OMSetRenderTargets(3, RTVs, m_depthStencilDSV);
     context->OMSetDepthStencilState(m_depthStencilState, 1);
 }
 

@@ -51,6 +51,7 @@
   <ItemGroup>
     <None Include=".clang-format" />
     <None Include="Shaders\Common.hlsli" />
+    <None Include="Shaders\LightUtils.hlsli" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders\BasicPS.hlsl">
@@ -274,6 +275,10 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>d3d11.lib;d3dcompiler.lib;dxgi.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <FxCompile>
+      <ShaderModel>5.0</ShaderModel>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </FxCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>

@@ -499,6 +499,12 @@ void AppBase::CreateBuffers() {
         Vector3 _sample = Vector3(randomFloats(generator) * 2.0f - 1.0f,
                                   randomFloats(generator) * 2.0f - 1.0f,
                                   randomFloats(generator));
+        _sample.Normalize();
+        /*_sample *= randomFloats(generator);*/
+
+        float scale = (float)i / 64.0f;
+        scale = lerp(0.1f, 1.0f, scale * scale);
+        _sample *= scale;
         kernel.samples[i] = _sample;
     }
     D3D11Utils::CreateConstBuffer(m_device, kernel, m_kernelSamplesGPU);

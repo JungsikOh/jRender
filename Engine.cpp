@@ -6,7 +6,7 @@
 #include <random>
 #include <tuple>
 #include <vector>
-
+ 
 #include "GeometryGenerator.h"
 #include "GraphicsCommon.h"
 
@@ -95,7 +95,7 @@ bool Engine::Initialize() {
         m_ground[2]->UpdateWorldRow(
             Matrix::CreateTranslation(Vector3(5.0f, 0.0f, 0.0f)));
         m_ground[2]->m_materialConstsCPU.albedoFactor =
-            Vector3(0.8f, 0.1f, 0.3f);  
+            Vector3(0.8f, 0.1f, 0.3f);
 
         m_basicList.push_back(m_ground[2]);
     }
@@ -119,7 +119,7 @@ bool Engine::Initialize() {
         m_mainObj->UpdateWorldRow(Matrix::CreateTranslation(center));
         m_mainObj->m_castShadow = true;
 
-        for (int i = 0; i < 2; i++) {          
+        for (int i = 0; i < 2; i++) {
             m_mainObj->m_instancedConstsCPU.instanceMat[i] =
                 Vector3(-1.0f * 0.8f * (float)i, 1.0f * 0.8f * (float)i,
                         1.0f * 0.5f * (float)i);
@@ -129,10 +129,10 @@ bool Engine::Initialize() {
         m_mainBoundingSphere = BoundingSphere(center, 0.5f);
         m_mainObj->UpdateConstantBuffers(m_device, m_context);
 
-        m_basicList.push_back(m_mainObj);
+        m_basicList.push_back(m_mainObj);    
     }
 
-    // 구 obj
+    // 구 obj 
     {
         auto meshes = GeometryGenerator::MakeSphere(0.2f, 20, 20);
 
@@ -156,9 +156,9 @@ bool Engine::Initialize() {
         m_globalConstsCPU.lights[0].spotPower = 1.0f;
         m_globalConstsCPU.lights[0].radius = 0.02f;
         m_globalConstsCPU.lights[0].lightColor = Vector3(1.0f, 1.0f, 1.0f);
-        m_globalConstsCPU.lights[0].type =
-            LIGHT_SPOT | LIGHT_SHADOW; // Point with shadow
-
+        m_globalConstsCPU.lights[0].type =    
+            LIGHT_SPOT | LIGHT_SHADOW; // Point with shadow  
+             
         //// 조명 1의 위치와 방향은 Update()에서 설정
         m_globalConstsCPU.lights[1].radiance = Vector3(5.0f);
         m_globalConstsCPU.lights[1].spotPower = 1.0f;
@@ -167,9 +167,9 @@ bool Engine::Initialize() {
         m_globalConstsCPU.lights[1].direction = Vector3(0.5f, -1.5f, 0.0f);
         m_globalConstsCPU.lights[1].lightColor = Vector3(0.5f, 1.0f, 1.0f);
         m_globalConstsCPU.lights[1].type =
-            LIGHT_SPOT | LIGHT_SHADOW; // Point with shadow
-
-        // 조명 2는 꺼놓음
+            LIGHT_DIRECTIONAL | LIGHT_SHADOW; // Point with shadow
+          
+        // 조명 2는 꺼놓음       
         m_globalConstsCPU.lights[2].radiance = Vector3(5.0f);
         m_globalConstsCPU.lights[2].position = Vector3(-1.3f, -0.4f, -1.0f);
         m_globalConstsCPU.lights[2].spotPower = 1.0f;
@@ -231,7 +231,7 @@ void Engine::Update(float dt) {
             // Matrix lightProjRow = XMMatrixOrthographicOffCenterLH(
             //         -10.0f, 10.0f, -10.0f, 10.0f, 1.0f, 100.0f);
             //  lightProjRow =
-            //  XMMatrixOrthographicLH(20.0f, 20.0f, 1.0f, 7.5f);
+            //  XMMatrixOrthographicLH(20.0f, 20.0f, 1.0f, 7.5f); 
 
             // https://learn.microsoft.com/ko-kr/windows/win32/api/directxmath/nf-directxmath-xmmatrixlookatlh
             Vector3 targetVec = (light.position + light.direction);
@@ -303,7 +303,7 @@ void Engine::Update(float dt) {
             Matrix::CreateScale(
                 std::max(0.01f, m_globalConstsCPU.lights[i].radius)) *
             Matrix::CreateTranslation(m_globalConstsCPU.lights[i].position));
-    }
+    }              
 
     static float prevRatio = 0.0f;
     static Vector3 prevPos(0.0f);
@@ -311,8 +311,8 @@ void Engine::Update(float dt) {
     q = Quaternion::CreateFromAxisAngle(Vector3(1.0f, 0.0f, 0.0f), 0.0f);
     Vector3 dragTranslation(0.0f);
 
-    // Object Moving using Mouse
-    if (m_leftButton) {
+    // Object Moving using Mouse   
+    if (m_leftButton) {    
         Vector3 cursorNdcNear = Vector3(m_cursorNdcX, m_cursorNdcY, 0.0f);
         Vector3 cursorNdcFar = Vector3(m_cursorNdcX, m_cursorNdcY, 1.0f);
 
@@ -427,78 +427,6 @@ void Engine::Render() {
 
     vector<ID3D11RenderTargetView *> RTVs = {m_resolvedRTV.Get()};
 
-    if (false) {
-
-        AppBase::SetPipelineState(Graphics::depthOnlyPSO);
-        AppBase::SetGlobalConsts(m_globalConstsGPU);
-
-        // Depth Pass Only
-        m_context->ClearDepthStencilView(m_depthOnlyDSV.Get(),
-                                         D3D11_CLEAR_DEPTH, 1.0f, 0);
-        m_context->OMSetRenderTargets(0, NULL, m_depthOnlyDSV.Get());
-
-        for (auto &i : m_basicList) {
-            i->Render(m_context);
-        }
-        // m_skybox->Render(m_context);
-
-        // Shadow Mapping
-        AppBase::SetShadowViewport();
-        for (int i = 0; i < MAX_LIGHTS; i++) {
-            if (m_globalConstsCPU.lights[i].type & LIGHT_SPOT) {
-                AppBase::SetPipelineState(Graphics::depthOnlyPSO);
-                AppBase::SetGlobalConsts(m_shadowGlobalConstsGPU[i]);
-                m_context->ClearDepthStencilView(m_shadowOnlyDSVs[i].Get(),
-                                                 D3D11_CLEAR_DEPTH, 1.0f, 0);
-                m_context->OMSetRenderTargets(0, NULL,
-                                              m_shadowOnlyDSVs[i].Get());
-
-                for (auto &frag : m_basicList) {
-                    if (frag->m_isVisible && frag->m_castShadow)
-                        frag->Render(m_context);
-                }
-            }
-        }
-        AppBase::SetPipelineState(Graphics::shadowCubeMapPSO);
-        AppBase::SetGlobalConsts(m_shadowGlobalConstsGPU[2]);
-        m_context->GSSetConstantBuffers(
-            2, 1, m_pointLightTransformGPU[2].GetAddressOf());
-        m_context->ClearDepthStencilView(m_shadowCubeDSVs.Get(),
-                                         D3D11_CLEAR_DEPTH, 1.0f, 0);
-        m_context->OMSetRenderTargets(0, NULL, m_shadowCubeDSVs.Get());
-        for (auto &frag : m_basicList) {
-            if (frag->m_isVisible && frag->m_castShadow)
-                frag->Render(m_context);
-        }
-
-        // 원래 그리기
-        AppBase::SetMainViewport();
-
-        vector<ID3D11ShaderResourceView *> shadowSRVs;
-        for (int i = 0; i < MAX_LIGHTS; i++) {
-            shadowSRVs.push_back(m_shadowOnlySRVs[i].Get());
-        }
-        shadowSRVs.push_back(m_shadowCubeSRVs.Get());
-
-        for (size_t i = 0; i < RTVs.size(); i++) {
-            m_context->ClearRenderTargetView(RTVs[i], clearColor);
-        }
-
-        AppBase::SetPipelineState(Graphics::defaultSolidPSO);
-        AppBase::SetGlobalConsts(m_globalConstsGPU);
-
-        m_context->ClearDepthStencilView(
-            m_depthStencilView.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
-            1.0f, 0);
-        m_context->OMSetRenderTargets(UINT(RTVs.size()), RTVs.data(),
-                                      m_depthStencilView.Get());
-        m_context->PSSetShaderResources(15, shadowSRVs.size(),
-                                        shadowSRVs.data());
-
-        for (auto &i : m_basicList) {
-            i->Render(m_context);
-        }
-    }
     // Cubemap을 위한 stencil 모양 찍기 및 나머지 부분에다가 큐브맵 그리기
     m_context->ClearDepthStencilView(m_depthStencilView.Get(),
                                      D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
@@ -518,15 +446,15 @@ void Engine::Render() {
     if (true) {
         AppBase::SetPipelineState(Graphics::gBufferPSO);
         m_gBuffer.PreRender(m_context);
-        for (auto &i : m_basicList) {
+        for (auto &i : m_basicList) { 
             i->Render(m_context);
         }
-    }                           
+    }
 
     vector<ID3D11ShaderResourceView *> deferredLightingSRVs = {
         m_gBuffer.GetColorView(), m_gBuffer.GetNormalView(),
-        m_gBuffer.GetDepthView()};
-                     
+        m_gBuffer.GetSpecPowerView(), m_gBuffer.GetDepthView()};  
+
     // 1. SSAO texture 만들기
     m_context->ClearDepthStencilView(m_depthStencilView.Get(),
                                      D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
@@ -558,12 +486,11 @@ void Engine::Render() {
                                      D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
                                      1.0f, 0);
     m_context->OMSetRenderTargets(1, m_resolvedRTV.GetAddressOf(),
-                                  m_depthStencilView.Get());
+                                  m_depthStencilView.Get()); 
 
     AppBase::SetPipelineState(Graphics::deferredLightingPSO);
     m_context->PSSetShaderResources(5, UINT(deferredLightingSRVs.size()),
                                     deferredLightingSRVs.data());
-    m_context->PSSetShaderResources(8, 1, m_ssaoBlurSRV.GetAddressOf());
     m_screenSquare->Render(m_context);
 
     m_context->ClearRenderTargetView(m_backBufferRTV.Get(), clearColor);
@@ -606,9 +533,7 @@ void Engine::UpdateGUI() {
         flag += ImGui::RadioButton("Depth", &m_postEffectsConstsCPU.mode, 2);
         flag += ImGui::CheckboxFlags("Edge Detection",
                                      &m_postEffectsConstsCPU.edge, 1);
-        flag += ImGui::CheckboxFlags(
-            "SSAO", &m_globalConstsCPU.SSAO,
-            1);    
+        flag += ImGui::CheckboxFlags("SSAO", &m_globalConstsCPU.SSAO, 1);
         flag += ImGui::SliderFloat(
             "DepthScale", &m_postEffectsConstsCPU.depthScale, 1e-3, 1.0f);
         flag += ImGui::SliderFloat(
@@ -680,7 +605,8 @@ void Engine::UpdateGUI() {
     }
     ImGui::SetNextItemOpen(true, ImGuiCond_Once);
     if (ImGui::TreeNode("Light1")) {
-        ImGui::SliderFloat3("Position", &m_globalConstsCPU.lights[1].position.x,
+        ImGui::SliderFloat3("direction",
+                            &m_globalConstsCPU.lights[1].direction.x,
                             -10.0f, 10.0f);
         ImGui::SliderFloat("Spot Power", &m_globalConstsCPU.lights[1].spotPower,
                            0.0f, 32.0f);

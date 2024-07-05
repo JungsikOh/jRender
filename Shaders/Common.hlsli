@@ -2,12 +2,13 @@
 #define __COMMON_HLSLI__
 
 #define MAX_LIGHTS 3
-#define MAX_INSTANCE 2
 #define LIGHT_OFF 0x00
 #define LIGHT_DIRECTIONAL 0x01
 #define LIGHT_POINT 0x02
 #define LIGHT_SPOT 0x04
 #define LIGHT_SHADOW 0x10
+
+#define MAX_INSTANCE 2
 #define MAX_SAMPLES 64
 
 // 샘플러들을 모든 쉐이더에서 공통으로 사용

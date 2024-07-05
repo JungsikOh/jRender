@@ -14,6 +14,9 @@
     <Filter Include="Shaders\RenderPass">
       <UniqueIdentifier>{e4dc014f-9999-4179-a927-b9dab38af24b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders\Utils">
+      <UniqueIdentifier>{511950c9-6a60-49d2-ad73-0e2d32115f85}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AppBase.cpp">
@@ -100,6 +103,9 @@
   <ItemGroup>
     <None Include=".clang-format" />
     <None Include="Shaders\Common.hlsli">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\LightUtils.hlsli">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>
