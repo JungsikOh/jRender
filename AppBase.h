@@ -149,6 +149,8 @@ class AppBase {
     ComPtr<ID3D11Buffer> m_pointLightTransformGPU[MAX_LIGHTS];
 
     // kernel Sample
+    std::vector<Vector3> ssaoNoise; 
+    Vector3kernelSampleConstants kernel;
     ComPtr<ID3D11Buffer> m_kernelSamplesGPU;
 
     // Post Processing

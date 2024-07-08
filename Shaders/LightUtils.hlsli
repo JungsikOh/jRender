@@ -11,7 +11,8 @@ struct LightingResult
 
 float DoAttenuation(float distance, float range)
 {
-    float att = saturate(1.0f - (distance * distance / (range * range)));
+    //float att = saturate(1.0f - (distance * distance / (range * range)));
+    float att = 1.0 / (distance * distance);
     return att;
 }
 
@@ -140,7 +141,7 @@ float3 DoPointLightPBR(Light light, float3 positionVS, float3 normalVS, float3 V
     float3 H = normalize(L + V);
     float distance = length(light.position - positionVS);
     float attenuation = DoAttenuation(distance, (light.fallOffEnd - light.fallOffStart));
-    float3 radiance = light.lightColor * attenuation * light.spotPower;
+    float3 radiance = light.lightColor * light.radiance;
     
     float NDF = DistributionGGX(normalVS, H, roughness);
     float G = GeometrySmith(normalVS, V, L, roughness);
@@ -166,7 +167,7 @@ float3 DoDirectinoalLightPBR(Light light, float3 positionVS, float3 normalVS, fl
     float3 L = normalize(-light.direction.xyz);
     float3 H = normalize(L + V);
     
-    float3 radiance = light.lightColor * light.spotPower;
+    float3 radiance = light.lightColor * light.radiance;
     
     float NDF = DistributionGGX(normalVS, H, roughness);
     float G = GeometrySmith(normalVS, V, L, roughness);
@@ -200,7 +201,7 @@ float3 DoSpotLightPBR(Light light, float3 positionVS, float3 normalVS, float3 V,
     float conAtt = saturate((cosAngle - cos(light.fallOffStart) / (cos(light.fallOffEnd) - cos(light.fallOffStart))));
     conAtt *= conAtt;
     
-    float3 radiance = light.lightColor * attenuation * conAtt * light.spotPower;
+    float3 radiance = light.radiance * light.lightColor * attenuation * conAtt;
     
     float NDF = DistributionGGX(normalVS, H, roughness);
     float G = GeometrySmith(normalVS, V, L, roughness);

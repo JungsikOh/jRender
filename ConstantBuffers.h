@@ -78,9 +78,7 @@ struct Light {
     float spotPower = 6.0f;
     Vector3 lightColor = Vector3(0.3f);
     float dummy1;
-
-
-
+    
     // Light type bitmasking
     // ex) LIGHT SPOT | LIGHT_SHADOW
     uint32_t type = LIGHT_OFF;
@@ -95,6 +93,7 @@ struct Light {
 __declspec(align(256)) struct GlobalConstants {
     Matrix view;
     Matrix proj;
+    Matrix invView; // View -> world
     Matrix invProj; // Proj -> View
     Matrix viewProj;
     Matrix invViewProj; // Proj -> World
@@ -108,7 +107,8 @@ __declspec(align(256)) struct GlobalConstants {
     float dummy2 = 0.0f;
     
     int SSAO = 0;
-    float dummy3[3];
+    int IBL = 0;
+    float dummy3[2];
 
     Light lights[MAX_LIGHTS];
 };

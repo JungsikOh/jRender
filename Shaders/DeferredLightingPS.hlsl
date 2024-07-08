@@ -9,8 +9,8 @@ Texture2D eTex : register(t4);
 
 Texture2D DiffuseRoughnessTex : register(t5);
 Texture2D NormalMetallicTex : register(t6);
-Texture2D EmissiveTex : register(t8);
-Texture2D<float> DepthTex : register(t9);
+Texture2D EmissiveTex : register(t7);
+Texture2D<float> DepthTex : register(t8);
 
 cbuffer MaterialConstants : register(b0)
 {
@@ -48,6 +48,8 @@ float4 main(VSToPS input) : SV_Target
     
     float4 diffuseRoughness = DiffuseRoughnessTex.Sample(linearWrapSampler, input.texcoord);
     float roughness = diffuseRoughness.a;
+    
+    float4 emission = EmissiveTex.Sample(linearWrapSampler, input.texcoord);
     
     float3 Lo = float3(0.0f, 0.0f, 0.0f); 
     

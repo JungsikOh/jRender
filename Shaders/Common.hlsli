@@ -14,8 +14,11 @@
 // 샘플러들을 모든 쉐이더에서 공통으로 사용
 SamplerState linearWrapSampler : register(s0);
 SamplerState linearClampSampler : register(s1);
-SamplerState shadowPointSampler : register(s2);
-SamplerComparisonState shadowCompareSampler : register(s3);
+SamplerState linearBorderSampler : register(s2);
+SamplerState pointWrapSampler : register(s3);
+SamplerState aniWrapSampler : register(s4);
+SamplerState shadowPointSampler : register(s5);
+SamplerComparisonState shadowCompareSampler : register(s6);
 
 // 공용 텍스쳐들은 t10부터 시작
 TextureCube specularIBLTex : register(t10);
@@ -50,6 +53,7 @@ cbuffer GlobalConstants : register(b1)
 {
     matrix view;
     matrix proj; 
+    matrix invView;
     matrix invProj;
     matrix viewProj;
     matrix invViewProj;
@@ -61,7 +65,10 @@ cbuffer GlobalConstants : register(b1)
     float envLodBias;
     float lodBias;
     float dummy2;
+    
     int SSAO;
+    int IBL;
+    float2 dummy4;
     
     Light lights[MAX_LIGHTS];
 };

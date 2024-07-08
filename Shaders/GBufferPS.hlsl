@@ -66,7 +66,7 @@ PSOutput PackGBuffer(float3 baseColor, float3 viewSpaceNormal, float4 emissive, 
     PSOutput output = (PSOutput) 0;
     output.NormalMetallic = float4(0.5f * viewSpaceNormal + 0.5f, metallic);
     output.DiffuseRoughness = float4(baseColor, roughness);
-    output.Emissive = float4(emissive.xyz, emissive.w / 256.0f);
+    output.Emissive = float4(emissive.xyz, emissive.w);
     
     return output;
 }
@@ -74,7 +74,7 @@ PSOutput PackGBuffer(float3 baseColor, float3 viewSpaceNormal, float4 emissive, 
 PSOutput main(VSToPS input)
 {
     float4 albeoColor = useAlbedoMap ? AlbedoTex.Sample(linearWrapSampler, input.texcoord) : float4(albedoFactor, 1.0);
-    
+     
     float3 normalWorld = GetNormal(input);
     float3 viewSpaceNormal = normalize(mul(normalWorld, (float3x3) view));
     
@@ -85,5 +85,5 @@ PSOutput main(VSToPS input)
     
     float3 emissiveColor = useEmissiveMap ? EmissiveTex.Sample(linearWrapSampler, input.texcoord).rgb : emissionFactor;
     
-    return PackGBuffer(albeoColor.xyz, viewSpaceNormal, float4(emissiveColor, 1.0f), aoRoughnessMetallic.g, aoRoughnessMetallic.b);
+    return PackGBuffer(albeoColor.xyz, viewSpaceNormal, float4(emissiveColor, aoRoughnessMetallic.r), aoRoughnessMetallic.g, aoRoughnessMetallic.b);
 }

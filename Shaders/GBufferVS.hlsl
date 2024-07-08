@@ -37,7 +37,7 @@ VSToPS main(VertexShaderInput input)
     output.texcoord = input.texcoord;
     
     float3 normal = input.normalModel;
-    output.normalWorld = mul(normal, (float3x3) worldIT);
+    output.normalWorld = mul(normal, (float3x3) world);
     output.normalWorld = normalize(output.normalWorld);
     
     output.tangentWorld = mul(float4(input.tangentModel, 0.0), world);

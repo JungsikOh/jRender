@@ -37,13 +37,13 @@ float4 PSmain(VSToPS input) : SV_Target0
     float result = 0.0f;
     
     [unroll]
-    for (int x = -2; x < 2; ++x)
+    for (int x = -4; x < 4; ++x)
     {
         [unroll]
-        for (int y = -2; y < 2; ++y)
+        for (int y = -4; y < 4; ++y)
         {
             float2 offset = float2(float(x), float(y)) * texelSize;
-            result += SSAOTex.Sample(linearClampSampler, input.texcoord + offset).r;
+            result += SSAOTex.Sample(linearBorderSampler, input.texcoord + offset).r;
         }
     }
 

@@ -359,7 +359,7 @@ void D3D11Utils::CreatePixelShader(ComPtr<ID3D11Device> &device,
                               shaderBlob->GetBufferSize(), NULL,
                               &m_pixelShader);
 }
-
+                             
 void D3D11Utils::CreatePixelShaderSum(ComPtr<ID3D11Device> &device,
                                    const wstring &filename,
                                    ComPtr<ID3D11PixelShader> &m_pixelShader) {

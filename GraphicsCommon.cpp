@@ -7,6 +7,9 @@ namespace Graphics {
 // Sampler States
 ComPtr<ID3D11SamplerState> linearWrapSS;
 ComPtr<ID3D11SamplerState> linearClampSS;
+ComPtr<ID3D11SamplerState> linearBorderSS;
+ComPtr<ID3D11SamplerState> pointWrapSS;
+ComPtr<ID3D11SamplerState> anisotropicWrapSS;
 ComPtr<ID3D11SamplerState> shadowPointSS;
 ComPtr<ID3D11SamplerState> shadowCompareSS;
 vector<ID3D11SamplerState *> sampleStates;
@@ -38,6 +41,7 @@ ComPtr<ID3D11VertexShader> shadowCubeMapVS;
 ComPtr<ID3D11VertexShader> postEffectsVS;
 ComPtr<ID3D11VertexShader> ssaoVS;
 ComPtr<ID3D11VertexShader> ssaoBlurVS;
+ComPtr<ID3D11VertexShader> ambientEmissionVS;
 
 ComPtr<ID3D11PixelShader> basicPS;
 ComPtr<ID3D11PixelShader> skyboxPS;
@@ -50,6 +54,7 @@ ComPtr<ID3D11PixelShader> shadowCubeMapPS;
 ComPtr<ID3D11PixelShader> postEffectsPS;
 ComPtr<ID3D11PixelShader> ssaoPS;
 ComPtr<ID3D11PixelShader> ssaoBlurPS;
+ComPtr<ID3D11PixelShader> ambientEmissionPS;
 
 ComPtr<ID3D11GeometryShader> normalGS;
 ComPtr<ID3D11GeometryShader> shadowCubeMapGS;
@@ -93,6 +98,7 @@ GraphicsPSO gBufferPSO;
 GraphicsPSO renderPassPSO;
 GraphicsPSO ssaoPSO;
 GraphicsPSO ssaoBlurPSO;
+GraphicsPSO ambientEmissionPSO;
 
 } // namespace Graphics
 
@@ -123,6 +129,23 @@ void Graphics::InitSamplers(ComPtr<ID3D11Device> &device) {
     sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
     device->CreateSamplerState(&sampDesc, linearClampSS.GetAddressOf());
 
+    sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
+    sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
+    sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
+    device->CreateSamplerState(&sampDesc, linearBorderSS.GetAddressOf());
+
+    sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+    sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+    sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+    sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
+    device->CreateSamplerState(&sampDesc, pointWrapSS.GetAddressOf());
+
+    sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+    sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+    sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+    sampDesc.Filter = D3D11_FILTER_ANISOTROPIC;
+    device->CreateSamplerState(&sampDesc, anisotropicWrapSS.GetAddressOf());
+
     // shadowPointSS
     sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
     sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
@@ -145,6 +168,9 @@ void Graphics::InitSamplers(ComPtr<ID3D11Device> &device) {
     // 샘플러 순서가 "Common.hlsli"에서와 일관성 있어야 함
     sampleStates.push_back(linearWrapSS.Get());
     sampleStates.push_back(linearClampSS.Get());
+    sampleStates.push_back(linearBorderSS.Get());
+    sampleStates.push_back(pointWrapSS.Get());
+    sampleStates.push_back(anisotropicWrapSS.Get());
     sampleStates.push_back(shadowPointSS.Get());
     sampleStates.push_back(shadowCompareSS.Get());
 }
@@ -206,12 +232,12 @@ void Graphics::InitBlendStates(ComPtr<ID3D11Device> &device) {
     mirrorBlendDesc.IndependentBlendEnable = false;
     // 개별 RenderTarget에 대해서 설정 (최대 8개)
     mirrorBlendDesc.RenderTarget[0].BlendEnable = true;
-    mirrorBlendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_BLEND_FACTOR;
-    mirrorBlendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_BLEND_FACTOR;
+    mirrorBlendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
+    mirrorBlendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_ONE;
     mirrorBlendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
 
     mirrorBlendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
-    mirrorBlendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ONE;
+    mirrorBlendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
     mirrorBlendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
 
     // 필요하면 RGBA 각각에 대해서도 조절 가능
@@ -267,7 +293,8 @@ void Graphics::InitDepthStencilStates(ComPtr<ID3D11Device> &device) {
     // 앞면에 대해서 어떻게 작동할지 설정
     dsDesc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
     dsDesc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
-    dsDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_REPLACE; // https://learn.microsoft.com/en-us/windows/win32/api/d3d11/ne-d3d11-d3d11_stencil_op
+    dsDesc.FrontFace.StencilPassOp =
+        D3D11_STENCIL_OP_REPLACE; // https://learn.microsoft.com/en-us/windows/win32/api/d3d11/ne-d3d11-d3d11_stencil_op
     dsDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS; // 항상 통과
 
     ThrowIfFailed(
@@ -280,9 +307,10 @@ void Graphics::InitDepthStencilStates(ComPtr<ID3D11Device> &device) {
     dsDesc.DepthEnable = true;   // 거울 속을 다시 그릴때 필요
     dsDesc.StencilEnable = true; // Stencil 사용
     dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
-    dsDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL; // <- 주의
+    dsDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;         // <- 주의
     dsDesc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP; // stencil 실패
-    dsDesc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP; // stencil 성공 depth 실패 
+    dsDesc.FrontFace.StencilDepthFailOp =
+        D3D11_STENCIL_OP_KEEP; // stencil 성공 depth 실패
     dsDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
     dsDesc.FrontFace.StencilFunc =
         D3D11_COMPARISON_EQUAL; // 여기가 중요! stencilRef랑 동일한 stencil
@@ -351,6 +379,9 @@ void Graphics::InitShaders(ComPtr<ID3D11Device> &device) {
         device, L"Shaders/SSAO.hlsl", skyboxIE, ssaoVS, skyboxIL);
     D3D11Utils::CreateVertexShaderAndInputLayoutSum(
         device, L"Shaders/SSAOBlur.hlsl", skyboxIE, ssaoBlurVS, skyboxIL);
+    D3D11Utils::CreateVertexShaderAndInputLayoutSum(
+        device, L"Shaders/AmbientEmission.hlsl", skyboxIE, ambientEmissionVS,
+        skyboxIL);
 
     D3D11Utils::CreatePixelShader(device, L"Shaders/BasicPS.hlsl", basicPS);
     // D3D11Utils::CreatePixelShader(device, L"NormalPS.hlsl", normalPS);
@@ -363,9 +394,12 @@ void Graphics::InitShaders(ComPtr<ID3D11Device> &device) {
     D3D11Utils::CreatePixelShader(device, L"Shaders/DeferredLightingPS.hlsl",
                                   deferredLightingPS);
     D3D11Utils::CreatePixelShaderSum(device, L"Shaders/PostEffects.hlsl",
-                                  postEffectsPS);
+                                     postEffectsPS);
     D3D11Utils::CreatePixelShaderSum(device, L"Shaders/SSAO.hlsl", ssaoPS);
-    D3D11Utils::CreatePixelShaderSum(device, L"Shaders/SSAOBlur.hlsl", ssaoBlurPS);
+    D3D11Utils::CreatePixelShaderSum(device, L"Shaders/SSAOBlur.hlsl",
+                                     ssaoBlurPS);
+    D3D11Utils::CreatePixelShaderSum(device, L"Shaders/AmbientEmission.hlsl",
+                                     ambientEmissionPS);
 
     D3D11Utils::CreatePixelShader(
         device, L"Shaders/RenderPass/RenderPassPS.hlsl", renderPassPS);
@@ -470,16 +504,24 @@ void Graphics::InitPipelineStates(ComPtr<ID3D11Device> &device) {
     gBufferPSO.m_vertexShader = gBufferVS;
     gBufferPSO.m_pixelShader = gBufferPS;
 
+    ambientEmissionPSO.m_vertexShader = ambientEmissionVS;
+    ambientEmissionPSO.m_pixelShader = ambientEmissionPS;
+    ambientEmissionPSO.m_inputLayout = skyboxIL;
+    ambientEmissionPSO.m_blendState = nullptr;
+    ambientEmissionPSO.m_rasterizerState = postProcessingRS;
+
     // DeferredLightingPSO
     deferredLightingPSO.m_vertexShader = postEffectsVS;
     deferredLightingPSO.m_pixelShader = deferredLightingPS;
     deferredLightingPSO.m_inputLayout = skyboxIL;
+    deferredLightingPSO.m_blendState = mirrorBS;
     deferredLightingPSO.m_rasterizerState = postProcessingRS;
 
     // postEffectsPSO
     postEffectsPSO.m_vertexShader = postEffectsVS;
     postEffectsPSO.m_pixelShader = postEffectsPS;
     postEffectsPSO.m_inputLayout = skyboxIL;
+    postEffectsPSO.m_blendState = nullptr;
     postEffectsPSO.m_rasterizerState = postProcessingRS;
 
     // ssaoPSO

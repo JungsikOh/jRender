@@ -396,8 +396,8 @@ void AppBase::SetPipelineState(const GraphicsPSO &pso) {
     m_context->GSSetShader(pso.m_geometryShader.Get(), 0, 0);
     m_context->IASetInputLayout(pso.m_inputLayout.Get());
     m_context->RSSetState(pso.m_rasterizerState.Get());
-    // m_context->OMSetBlendState(pso.m_blendState.Get(), pso.m_blendFactor,
-    //                            0xffffffff);
+    m_context->OMSetBlendState(pso.m_blendState.Get(), pso.m_blendFactor,
+                               0xffffffff);
     m_context->OMSetDepthStencilState(pso.m_depthStencilState.Get(),
                                       pso.m_stencilRef);
     m_context->IASetPrimitiveTopology(pso.m_primitiveTopology);
@@ -488,13 +488,11 @@ void AppBase::CreateBuffers() {
     // 0 부터 1 까지 균등하게 나타나는 난수열을 생성하기 위해 균등 분포
     std::uniform_real_distribution<float> randomFloats(0.0f, 1.0f);
     std::default_random_engine generator;
-    std::vector<Vector3> ssaoNoise;
     for (int i = 0; i < 16; i++) {
         Vector3 tmp = Vector3(randomFloats(generator) * 2.0f - 1.0f,
                               randomFloats(generator) * 2.0f - 1.0f, 0.0f);
         ssaoNoise.push_back(tmp);
     }
-    Vector3kernelSampleConstants kernel;
     for (UINT i = 0; i < MAX_SAMPLES; ++i) {
         Vector3 _sample = Vector3(randomFloats(generator) * 2.0f - 1.0f,
                                   randomFloats(generator) * 2.0f - 1.0f,
@@ -522,10 +520,10 @@ void AppBase::CreateBuffers() {
     // SSAO Blur
     ThrowIfFailed(
         m_device->CreateTexture2D(&desc, NULL, m_ssaoBlurTex.GetAddressOf()));
-    ThrowIfFailed(m_device->CreateRenderTargetView(m_ssaoBlurTex.Get(), NULL,
-                                                   m_ssaoBlurRTV.GetAddressOf()));
-    ThrowIfFailed(m_device->CreateShaderResourceView(m_ssaoBlurTex.Get(), NULL,
-                                                     m_ssaoBlurSRV.GetAddressOf()));
+    ThrowIfFailed(m_device->CreateRenderTargetView(
+        m_ssaoBlurTex.Get(), NULL, m_ssaoBlurRTV.GetAddressOf()));
+    ThrowIfFailed(m_device->CreateShaderResourceView(
+        m_ssaoBlurTex.Get(), NULL, m_ssaoBlurSRV.GetAddressOf()));
 
     CreateDepthBuffers();
 }
@@ -538,6 +536,7 @@ void AppBase::UpdateGlobalConstants(const Vector3 &eyeWorld,
     m_globalConstsCPU.eyeWorld = eyeWorld;
     m_globalConstsCPU.view = viewRow.Transpose();
     m_globalConstsCPU.proj = projRow.Transpose();
+    m_globalConstsCPU.invView = viewRow.Invert().Transpose();
     m_globalConstsCPU.invProj = projRow.Invert().Transpose();
     m_globalConstsCPU.viewProj = (viewRow * projRow).Transpose();
     // 그림자 렌더링에 사용
