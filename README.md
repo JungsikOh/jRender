@@ -1,7 +1,7 @@
 # jRender
 This Render is built in DirectX 11 API.
 
-If you read more info about DirectX11 Engine, I recommend that [My Graphis Engine Project](https://github.com/JungsikOh/Riley-Engine)
+If you read more info about DirectX11 Engine, I recommend [My Graphis Engine Project](https://github.com/JungsikOh/Riley-Engine)
 
 ## Features
 - Fog Effect
